@@ -149,7 +149,7 @@ UNIVERSE {
 //-------------------------------------------------------
 Initial_Value {
     UNIVERSE.ALPHA = 1(0.03);
-    UNIVERSE.BETA = 1(0.05);
+    UNIVERSE.BETA = 1(0.04);
     UNIVERSE.LINK_RANGE = 1(50.0);
     UNIVERSE.K_P = 1(0.2);
     UNIVERSE.COUNT = 1(0);
@@ -161,7 +161,7 @@ Initial_Value {
 // Agent Rule
 //-------------------------------------------------------
 #begin_rule UNIVERSE
-include "miura_lib.inc" //基礎的な独自関数をインポート
+include "lib_miura.inc" //基礎的な独自関数をインポート
 
 
 //################UNIVE_INIT#######################
@@ -189,9 +189,9 @@ Dim temp_agtset as AgtSet
 //-------------------------パラメータの設定(開始)---------------------------
 
 //エージェントの数
-Universe.area_num=30 //areaエージェントの数
-Universe.home_num=500 //homeエージェントの最大数
-Universe.solar_num=500 //solarエージェントの最大数
+Universe.area_num=20 //areaエージェントの数
+Universe.home_num=50 //homeエージェントの最大数
+Universe.solar_num=50 //solarエージェントの最大数
 
 //-------------------------パラメータの設定(終了)---------------------------
 
@@ -567,8 +567,8 @@ Map_Output {
     Title = "powergrid";
     Disable = No;
     Background_Color = 255, 255, 255;
-    Position_x = 288;
-    Position_y = 41;
+    Position_x = -43;
+    Position_y = 21;
     Size_x = 1044;
     Size_y = 800;
     Remarks = Yes;
@@ -719,8 +719,8 @@ Time_Graph {
     Remarks = Yes;
     Legend_Pos = Top;
     FastDraw = Yes;
-    Position_x = 164;
-    Position_y = 257;
+    Position_x = 90;
+    Position_y = 190;
     Size_x = 985;
     Size_y = 344;
     Axis_Label = "", "";
@@ -1061,8 +1061,8 @@ Time_Graph {
     Remarks = Yes;
     Legend_Pos = Top;
     FastDraw = No;
-    Position_x = 534;
-    Position_y = 223;
+    Position_x = 83;
+    Position_y = 71;
     Size_x = 846;
     Size_y = 444;
     Axis_Label = "", "";
@@ -1125,7 +1125,7 @@ Control_Panel {
         Font_Color = 0, 0, 0;
         Font_Background_Color = 0, 0, 0;
         Var_Name = "Universe.beta";
-        Text_Data = "0.05";
+        Text_Data = "0.04";
     }
 }
 
@@ -1182,7 +1182,7 @@ Network_Info {
 // Window Location Definition Division
 //-------------------------------------------------------
 Window_Rectangle {
-    Window_Name = Main_Window, -8, -8, 1616, 886;
+    Window_Name = Main_Window, 0, 0, 1040, 863;
     Window_Name = Output_Setting_Window, 614, 356, 480, 290;
     Window_Name = Artisoc_Help_Window, 575, 41, 771, 542;
 }
