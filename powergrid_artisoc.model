@@ -31,8 +31,8 @@ UNIVERSE {
             Dim e(0, 0) As Double = (0.0);
             Dim link(0, 0) As AgtSet = ();
             Dim members(0, 0) As AgtSet = ();
-            Dim ramda(0, 0) As Double = (0.0);
-            Dim ramda_next(0, 0) As Double = (0.0);
+            Dim lamda(0, 0) As Double = (0.0);
+            Dim lamda_next(0, 0) As Double = (0.0);
             Dim G_i(0, 0) As Double = (0.0);
         }
         AgtType transmitter(0, 0)[0] {
@@ -163,13 +163,13 @@ Initial_Value {
 #begin_rule UNIVERSE
 include "lib_miura.inc" //基礎的な独自関数をインポート
 
-
-//################UNIVE_INIT#######################
 Univ_Init{
 
 ClearConsoleScreen() //コンソールをクリア
 
-//-------------------------変数の宣言(開始)------------------------------------
+//-------------------------------------------------------
+//変数の宣言
+//-------------------------------------------------------
 
 //空間に関する変数
 Dim width as Integer //空間の幅(x)
@@ -183,29 +183,24 @@ Dim i as Integer
 Dim one as Agt
 Dim temp_agtset as AgtSet
 
-//-------------------------変数の宣言(終了)------------------------------------
 
-
-//-------------------------パラメータの設定(開始)---------------------------
+//-------------------------------------------------------
+//パラメータの設定＆事前処理
+//-------------------------------------------------------
 
 //エージェントの数
 Universe.area_num=20 //areaエージェントの数
 Universe.home_num=50 //homeエージェントの最大数
 Universe.solar_num=50 //solarエージェントの最大数
 
-//-------------------------パラメータの設定(終了)---------------------------
-
-
-//-------------------------事前処理(開始)---------------------------------------
-
 //空間のサイズを取得
 width=GetWidthSpace(Universe.powergrid) //空間の幅(x)
 height=GetHeightSpace(Universe.powergrid) //空間の高さ(y)
 
-//-------------------------事前処理(終了)---------------------------------------
 
-
-//---------------エージェントの生成と配置(開始)-------------------------
+//-------------------------------------------------------
+//エージェントの生成と配置
+//-------------------------------------------------------
 
 //areaエージェントの生成と配置
 For i=0 to Universe.area_num
@@ -214,14 +209,14 @@ next i
 MakeAgtSet(area_set, Universe.powergrid.area)
 RandomPutAgtset(area_set)
 
-}//#############UNIVE_INITの終了###################
+}
 
 
-
-//#############UNIVE_STEP_BEGIN#################
 Univ_Step_Begin{
 
-//-------------------------変数の宣言(開始)------------------------------------
+//-------------------------------------------------------
+//変数の宣言
+//-------------------------------------------------------
 
 //地域の中のmembers配置に用いる変数
 Dim r_max as Double
@@ -236,17 +231,17 @@ Dim temp_agt as Agt
 Dim num_temp as Integer
 Dim link_agtset as AgtSet  
 
-//-------------------------変数の宣言(終了)------------------------------------
 
-
-//-------------------------パラメータの設定(開始)---------------------------
+//-------------------------------------------------------
+//パラメータの設定＆事前処理
+//-------------------------------------------------------
 
 r_max=10  //地域の中に需要供給エージェントを配置するときの範囲（地域中心から半径r_max以内）
 
-//-------------------------パラメータの設定(終了)---------------------------
 
-
-//-----------------エージェントの生成と配置(開始)-----------------------
+//-------------------------------------------------------
+//エージェントの生成と配置
+//-------------------------------------------------------
 //エージェントの生成と配置は初回ステップのみ実行する
 if Universe.count== 0 Then
 	
@@ -317,25 +312,24 @@ if Universe.count== 0 Then
 	
 End if
 
-//-----------------エージェントの生成と配置(終了)-----------------------
 
-}//##########UNIVE_STEP_BEGINの終了##############
-
+}
 
 
-//##############UNIVE_STEP_END#################
+
 Univ_Step_End{
+//-------------------------------------------------------
+//変数の宣言
+//-------------------------------------------------------
 Dim temp_agtset as AgtSet
 Dim area_agtset as AgtSet
 Dim player_agtset as AgtSet
 Dim count_min as Integer
 
-Universe.count=Universe.count+1
+//-------------------------------------------------------
+//パラメータの設定＆事前処理
+//-------------------------------------------------------
 count_min=Universe.count*1 //離散時間を調整
-
-Universe.time_min=count_min mod 60
-Universe.time_day=count_min \ 1440
-Universe.time_hour=(count_min mod 1440) \ 60
 
 ClearAgtset (area_agtset)
 ClearAgtset(player_agtset)
@@ -352,6 +346,9 @@ MakeAgtSet(temp_agtset, Universe.powergrid.transmitter)
 JoinAgtSet(player_agtset, temp_agtset) //transを追加
 PurifyAgtSet(player_agtset, player_agtset) //重複を削除
 
+//-------------------------------------------------------
+//状態量の更新
+//-------------------------------------------------------
 //停滞量の総量を更新
 Universe.e_total=0
 For each one in area_agtset
@@ -366,7 +363,7 @@ next one
 
 //ラムダを更新
 For each one in area_agtset
-	one.ramda=one.ramda_next
+	one.lamda=one.lamda_next
 next one
 
 //x_iを更新
@@ -374,14 +371,22 @@ For each one in player_agtset
 	one.x_i=one.x_i_next
 next one
 
-}//###########UNIVE_STEP_ENDの終了##############
+//-------------------------------------------------------
+//時間の更新
+//-------------------------------------------------------
+Universe.count=Universe.count+1
+Universe.time_min=count_min mod 60
+Universe.time_day=count_min \ 1440
+Universe.time_hour=(count_min mod 1440) \ 60
+
+}
 
 
 
-//##############UNIVE_STEP_END#################
+
 Univ_Finish{
 
-}//#############UNIVE_STEP_ENDの終了############
+}
 #end_rule UNIVERSE
 
 
@@ -392,8 +397,8 @@ Univ_Finish{
 //-------------------------------------------------------
 #begin_rule UNIVERSE.POWERGRID.AREA
 Agt_Init{
-My.ramda=0
-My.ramda_next=0
+My.lamda=0
+My.lamda_next=0
 My.G_i=0
 }
 
@@ -412,10 +417,10 @@ For each one in My.trans_in_set
 next one
 
 if Universe.time_min == 50 then
-	My.ramda_next= My.ramda+ Universe.beta * My.G_i
+	My.lamda_next= My.lamda+ Universe.beta * My.G_i
 end if
 
-My.p=My.ramda
+My.p=My.lamda
 
 }
 #end_rule UNIVERSE.POWERGRID.AREA
@@ -454,7 +459,7 @@ Else
 	end if
 end if
 
-My.x_i_next=My.x_i - Universe.alpha * (-My.dU - My.from_player.ramda+My.to_player.ramda )
+My.x_i_next=My.x_i - Universe.alpha * (-My.dU - My.from_player.lamda+My.to_player.lamda )
 
 }
 #end_rule UNIVERSE.POWERGRID.TRANSMITTER
@@ -489,7 +494,7 @@ Else
 	My.dU=-2*My.C4*(My.x_i-My.C1)
 end if
 
-My.x_i_next=My.x_i - Universe.alpha * (-My.dU + My.dG * My.area.ramda )
+My.x_i_next=My.x_i - Universe.alpha * (-My.dU + My.dG * My.area.lamda )
 
 }
 #end_rule UNIVERSE.POWERGRID.HOME
@@ -522,7 +527,7 @@ Else
 	My.dU=-2*My.C4*(My.x_i-My.C1)
 end if
 
-My.x_i_next=My.x_i - Universe.alpha * (-My.dU + My.dG * My.area.ramda )
+My.x_i_next=My.x_i - Universe.alpha * (-My.dU + My.dG * My.area.lamda )
 
 }
 #end_rule UNIVERSE.POWERGRID.SOLAR
@@ -1061,8 +1066,8 @@ Time_Graph {
     Remarks = Yes;
     Legend_Pos = Top;
     FastDraw = No;
-    Position_x = 83;
-    Position_y = 71;
+    Position_x = 106;
+    Position_y = 418;
     Size_x = 846;
     Size_y = 444;
     Axis_Label = "", "";
@@ -1182,9 +1187,9 @@ Network_Info {
 // Window Location Definition Division
 //-------------------------------------------------------
 Window_Rectangle {
-    Window_Name = Main_Window, 0, 0, 1040, 863;
-    Window_Name = Output_Setting_Window, 614, 356, 480, 290;
-    Window_Name = Artisoc_Help_Window, 575, 41, 771, 542;
+    Window_Name = Main_Window, 0, 0, 1219, 866;
+    Window_Name = Output_Setting_Window, 607, 286, 480, 290;
+    Window_Name = Artisoc_Help_Window, 575, 41, 1094, 542;
 }
 
 
