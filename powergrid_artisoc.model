@@ -23,6 +23,7 @@ UNIVERSE {
             Dim area(0, 0) As Agt = (0);
             Dim trans(0, 0) As Agt = (0);
             Dim pair(0, 0) As AgtSet = ();
+            Dim link(0, 0) As AgtSet = ();
         }
         AgtType area(0, 0)[0] {
             Dim ID(0, 0) As Integer = (0);
@@ -45,6 +46,7 @@ UNIVERSE {
             Dim lamda(0, 0) As Double = (0.0);
             Dim lamda_next(0, 0) As Double = (0.0);
             Dim G_i(0, 0) As Double = (0.0);
+            Dim trans_terminals(0, 0) As AgtSet = ();
         }
         AgtType trans(0, 0)[0] {
             Dim ID(0, 0) As Integer = (0);
@@ -167,6 +169,7 @@ Initial_Value {
     UNIVERSE.ALPHA = 1(0.03);
     UNIVERSE.BETA = 1(0.02);
     UNIVERSE.LINK_RANGE_AREA = 1(50.0);
+    UNIVERSE.LINK_RANGE_PLAYER = 1(7.0);
     UNIVERSE.COUNT = 1(0);
     UNIVERSE.HOME_NUM = 1(50);
     UNIVERSE.SOLAR_NUM = 1(50);
@@ -209,7 +212,7 @@ Universe.space_height=GetHeightSpace(Universe.powergrid) //空間の高さ(y)
 //-------------------------------------------------------
 
 //areaエージェントの生成と配置
-For i=0 to Universe.area_num
+For i=1 to Universe.area_num
 	CreateAgt(Universe.powergrid.area) 
 next i
 
@@ -229,8 +232,9 @@ Dim area_set as AgtSet
 Dim temp_agt as Agt
 Dim temp_agt2 as Agt
 Dim temp_agt3 as Agt
-Dim num_temp as Integer
+Dim player_agtset as AgtSet
 Dim temp_agtset as AgtSet
+Dim num_temp as Integer
 Dim check_counter as Integer
 //インクリメント変数
 Dim i as Integer
@@ -250,6 +254,7 @@ terminal_position=2/3
 //エージェントの生成と配置
 //エージェントの生成と配置は初回ステップのみ実行する
 //-------------------------------------------------------
+
 if Universe.count== 0 Then //初回ステップのみ
 
 	//-------------------------------------------------------
@@ -356,6 +361,7 @@ if Universe.count== 0 Then //初回ステップのみ
 				theta=@direction_agt(one, one2)
 				temp_agt2.X=one.X+r*cos(theta/180*PI())
 				temp_agt2.Y=one.Y+r*sin(theta/180*PI())
+				AddAgt(one.trans_terminals, temp_agt2) //地域Aのtrans_terminalsに格納
 				//地域B側ターミナルの配置
 				temp_agt3=CreateAgt(Universe.powergrid.trans_terminal) //地域B側ターミナルを生成
 				temp_agt3.trans=temp_agt //地域B側ターミナルのtransに送電家Zを格納
@@ -364,6 +370,7 @@ if Universe.count== 0 Then //初回ステップのみ
 				theta=@direction_agt(one2, one)
 				temp_agt3.X=one2.X+r*cos(theta/180*PI())
 				temp_agt3.Y=one2.Y+r*sin(theta/180*PI())
+				AddAgt(one2.trans_terminals, temp_agt3) //地域Aのtrans_terminalsに格納
 				//ターミナル間に線を引く(ペアリング)
 				AddAgt(temp_agt2.pair, temp_agt3)
 				AddAgt(temp_agt3.pair, temp_agt2)
@@ -374,39 +381,106 @@ if Universe.count== 0 Then //初回ステップのみ
 	//-------------------------------------------------------
 	//各地域エージェントのmembersにhomeやsolarを追加する
 	//-------------------------------------------------------
+
 	For each one in area_set //各地域ごとに
-		ClearAgtset (one.members) //membersを初期化
+		ClearAgtSet(one.members) //membersを初期化
+		ClearAgtSet(player_agtset) //player_agtsetを初期化
+		ClearAgtSet(temp_agtset) //player_agtsetを初期化
 		
 		//homeエージェントの配置
 		num_temp=CInt(Universe.home_num/2*(1+Rnd())) //homeエージェント数をランダムで決定
-		For i=1 to num_temp
-			temp_agt =CreateAgt(Universe.powergrid.home) 
-			r=r_max*Rnd()
-			theta=2*PI()*Rnd()
-			temp_agt.X=one.X+r*cos(theta)
-			temp_agt.Y=one.Y+r*sin(theta)
-			AddAgt(one.members, temp_agt)
-			temp_agt.area=one
-		next i
-		
-		//solarエージェントの配置
-		num_temp=CInt(CInt(Universe.solar_num/2*(1+Rnd()))) //solarエージェント数をランダムで決定
-		For i=1 to num_temp
-			temp_agt =CreateAgt(Universe.powergrid.solar) 
-			r=r_max*Rnd()
-			theta=2*PI()*Rnd()
-			temp_agt.X=one.X+r*cos(theta)
-			temp_agt.Y=one.Y+r*sin(theta)
-			AddAgt(one.members, temp_agt)
-			temp_agt.area=one
-		next i
-	next one
-	
-End if
+		player_agtset=SetPlayers("home", num_temp, r_max, one)
 
+		num_temp=CInt(CInt(Universe.solar_num/2*(1+Rnd()))) //solarエージェント数をランダムで決定
+		temp_agtset=SetPlayers("solar", num_temp, r_max, one)
+		
+
+
+		
+		loop_ct=0 //ループカウンタをリセット
+		Do While 1
+			check_counter=0
+			//孤立エージェントがある場合はcheck_counterを+1して該当するエージェントを再ランダム配置
+			ClearAgtset(temp_agtset)
+			For each one2 in player_agtset
+				MakeAllAgtSetAroundPosition(temp_agtset,Universe.powergrid, one2.X, one2.Y, one2.Layer, Universe.link_range_player)
+				DelAgtSet2(temp_agtset, one2) //自分自身を除去
+				DelAgtSet(temp_agtset, area_set) //エリアエージェントを除去
+				
+				ct=CountAgtSet(temp_agtset)
+				if ct==0 then //再ランダム配置
+					check_counter=check_counter+1
+					r=r_max*Rnd()
+					theta=2*PI()*Rnd()
+					one2.X=one.X+r*cos(theta)
+					one2.Y=one.Y+r*sin(theta)
+				End if
+			next one
+			//孤立エージェントがない場合(check_counter=0のとき)Breakする
+			if check_counter==0 then
+				PrintLn("地域" & CStr(one.serial) & "の需要供給家の配置を完了しました")
+				Break
+			End if
+			//再配置の試行回数が一定数以上になった場合もBreakする(重複，孤立地域は諦める)
+			loop_ct=loop_ct+1
+			if loop_ct>=10000 then
+				PrintLn("地域" & CStr(one.serial) & "の需要供給家の配置に失敗しました")
+				Break
+			End if
+		Loop
+		//隣接する需要供給家
+		/*
+		For each one2 in player_agtset
+			ClearAgtset (one2.link) 
+			MakeAllAgtSetAroundPosition(one2.link, Universe.powergrid, one2.X, one2.Y, one2.Layer, Universe.link_range_player)
+			DelAgtSet2(one2.link, one2) //自分自身を除去
+			DelAgtSet(one2.link, area_set) //エリアエージェントを除去
+		next one
+		*/
+	next one //各地域ごとに
+	
+End if //初回ステップのみ各エージェントの生成配置
 
 }
 
+
+//-------------------------------------------------------
+//独自定義関数
+//-------------------------------------------------------
+//SetPlayers(需要供給エージェントタイプ(文字列), 生成配置するエージェント数, 配置するエリア半径, 配置する地域エージェント)
+//需要供給エージェントを生成して地域内のランダムな位置に配置する関数
+//戻り値：生成したエージェントから構成されるAgtSet
+Function SetPlayers(type as String, n as Integer, r_max as Double, area as Agt) as AgtSet
+{
+Dim agt_type as AgtType
+Dim temp_agt as Agt
+Dim r as Double
+Dim theta as Double
+Dim i as Integer
+Dim output as AgtSet
+
+//フルパスのエージェントタイプを取得
+type="Universe.powergrid." & type
+agt_type=CAgtType(type) 
+
+//nコのエージェント生成して配置
+For i=1 to n
+	temp_agt =CreateAgt(agt_type) 
+	//位置決め(ランダム)
+	r=r_max*Rnd()
+	theta=2*PI()*Rnd()
+	temp_agt.X=area.X+r*cos(theta)
+	temp_agt.Y=area.Y+r*sin(theta)
+	//該当地域のmembersに登録
+	AddAgt(area.members, temp_agt)
+	//戻り値AgtSetに登録
+	AddAgt(output, temp_agt)
+	//地域を登録
+	temp_agt.area=area
+next i
+
+return(output)
+} //SetPlayersの終了
 
 
 Univ_Step_End{
@@ -680,10 +754,10 @@ Map_Output {
     Title = "powergrid";
     Disable = No;
     Background_Color = 255, 255, 255;
-    Position_x = 129;
-    Position_y = 18;
-    Size_x = 1406;
-    Size_y = 870;
+    Position_x = 10;
+    Position_y = 10;
+    Size_x = 1033;
+    Size_y = 771;
     Remarks = Yes;
     Legend_Pos = Top;
     Font_Name = "Dialog";
@@ -748,12 +822,12 @@ Map_Output {
         Map_Element_Name = "需要家(一般家庭)";
         Map_Element = Agent_Variable;
         Output_Expression = "Universe.powergrid.home";
-        Draw_Line = No;
-        Collection_Name = "";
-        Line_Type = 0;
-        Line_Arrow = 0;
-        Line_Width = 0;
-        Line_Color = 0, 0, 0;
+        Draw_Line = Yes;
+        Collection_Name = "Universe.powergrid.home.link";
+        Line_Type = 2;
+        Line_Arrow = 1;
+        Line_Width = 1;
+        Line_Color = 255, 0, 0;
         Line_Type_Variable = "";
         Line_Arrow_Variable = "";
         Line_Width_Variable = "";
@@ -783,10 +857,10 @@ Map_Output {
         Output_Expression = "Universe.powergrid.solar";
         Draw_Line = Yes;
         Collection_Name = "Universe.powergrid.solar.link";
-        Line_Type = 1;
+        Line_Type = 2;
         Line_Arrow = 1;
         Line_Width = 1;
-        Line_Color = 0, 0, 255;
+        Line_Color = 255, 0, 0;
         Line_Type_Variable = "";
         Line_Arrow_Variable = "";
         Line_Width_Variable = "";
@@ -865,10 +939,10 @@ Time_Graph {
     Remarks = Yes;
     Legend_Pos = Top;
     FastDraw = Yes;
-    Position_x = 34;
-    Position_y = 343;
-    Size_x = 729;
-    Size_y = 217;
+    Position_x = 267;
+    Position_y = 14;
+    Size_x = 878;
+    Size_y = 253;
     Axis_Label = "", "";
     Draw_By_JFree_Chart = Yes;
     Scale = 0, 0.0, 1000, 100.0, 100, 10.0;
@@ -906,10 +980,10 @@ Time_Graph {
     Remarks = Yes;
     Legend_Pos = Top;
     FastDraw = No;
-    Position_x = -31;
-    Position_y = 30;
-    Size_x = 729;
-    Size_y = 217;
+    Position_x = 251;
+    Position_y = 279;
+    Size_x = 892;
+    Size_y = 256;
     Axis_Label = "", "";
     Draw_By_JFree_Chart = Yes;
     Scale = 0, 0.0, 1000, 100.0, 100, 10.0;
@@ -1159,10 +1233,10 @@ Numeric_Output {
     Font_Style = 0;
     Font_Color = 0, 0, 0;
     Font_Background_Color = 255, 255, 255;
-    Position_x = 577;
-    Position_y = 76;
-    Size_x = 729;
-    Size_y = 217;
+    Position_x = 21;
+    Position_y = 644;
+    Size_x = 300;
+    Size_y = 250;
     Numeric_Name = "time";
     Title = "time";
     Disable = No;
@@ -1207,10 +1281,10 @@ Time_Graph {
     Remarks = Yes;
     Legend_Pos = Top;
     FastDraw = No;
-    Position_x = 106;
-    Position_y = 328;
-    Size_x = 729;
-    Size_y = 217;
+    Position_x = 353;
+    Position_y = 636;
+    Size_x = 300;
+    Size_y = 250;
     Axis_Label = "", "";
     Draw_By_JFree_Chart = Yes;
     Scale = 0, 0.0, 1000, 100.0, 100, 10.0;
@@ -1233,7 +1307,7 @@ Time_Graph {
 // Control Panel Definition Division
 //-------------------------------------------------------
 Control_Panel {
-    Display_Area = 1413, 285, 195, 477;
+    Display_Area = 1465, 574, 195, 477;
     Panel_Item {
         Item_Type = Edit_Box;
         Item_Name = "リンクレンジ(地域)";
@@ -1258,7 +1332,7 @@ Control_Panel {
         Font_Color = 0, 0, 0;
         Font_Background_Color = 0, 0, 0;
         Var_Name = "Universe.link_range_player";
-        Text_Data = "0.0";
+        Text_Data = "7.0";
     }
     Panel_Item {
         Item_Type = Edit_Box;
@@ -1359,14 +1433,14 @@ Others_Data {
     Debug_Position_y = 75;
     Debug_Size_x = 400;
     Debug_Size_y = 200;
-    Console_Position_x = 202;
-    Console_Position_y = 623;
-    Console_Size_x = 729;
-    Console_Size_y = 217;
-    Componen_Tree_Position_x = 2;
-    Componen_Tree_Position_y = 2;
-    Componen_Tree_Size_x = 309;
-    Componen_Tree_Size_y = 400;
+    Console_Position_x = 53;
+    Console_Position_y = 372;
+    Console_Size_x = 515;
+    Console_Size_y = 472;
+    Componen_Tree_Position_x = 80;
+    Componen_Tree_Position_y = 115;
+    Componen_Tree_Size_x = 360;
+    Componen_Tree_Size_y = 762;
     Console_Background_Color = 16777215;
     Console_Foreground_Color = 255;
     Console_DisplayLines_Max = 500;
@@ -1393,9 +1467,9 @@ Network_Info {
 // Window Location Definition Division
 //-------------------------------------------------------
 Window_Rectangle {
-    Window_Name = Main_Window, 0, 0, 1263, 1013;
-    Window_Name = Output_Setting_Window, 591, 382, 480, 290;
-    Window_Name = Artisoc_Help_Window, 721, 20, 1094, 542;
+    Window_Name = Main_Window, 0, 0, 1443, 978;
+    Window_Name = Output_Setting_Window, 545, 366, 480, 290;
+    Window_Name = Artisoc_Help_Window, -66, 384, 1190, 667;
 }
 
 
