@@ -17,7 +17,7 @@ return(distance)
 
 //----------------------------------------------------------
 Function direction_agt(agt1 as Agt, agt2 as Agt) as Double{
-//agt1から見たagt2の角度を取得する関数
+//agt1から見たagt2の角度を取得する関数[degree]
 
 //空間を取得する（agt1の空間を取得して角度計算に使う）
 Dim sp as Space
