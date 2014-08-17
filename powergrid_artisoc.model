@@ -25,29 +25,6 @@ UNIVERSE {
             Dim pair(0, 0) As AgtSet = ();
             Dim link(0, 0) As AgtSet = ();
         }
-        AgtType area(0, 0)[0] {
-            Dim ID(0, 0) As Integer = (0);
-            Dim X(0, 0) As Double = (0.0);
-            Dim Y(0, 0) As Double = (0.0);
-            Dim Layer(0, 0) As Integer = (0);
-            Dim Direction(0, 0) As Double = (0.0);
-            Dim dp(0, 0) As Double = (0.0);
-            Dim k(0, 0) As Double = (0.0);
-            Dim b(0, 0) As Double = (0.0);
-            Dim p(0, 0) As Double = (0.0);
-            Dim serial(0, 0) As Integer = (0);
-            Dim trans_out_set(0, 0) As AgtSet = ();
-            Dim trans_in_set(0, 0) As AgtSet = ();
-            Dim e_new(0, 0) As Double = (0.0);
-            Dim m(0, 0) As Double = (0.0);
-            Dim e(0, 0) As Double = (0.0);
-            Dim link(0, 0) As AgtSet = ();
-            Dim members(0, 0) As AgtSet = ();
-            Dim lamda(0, 0) As Double = (0.0);
-            Dim lamda_next(0, 0) As Double = (0.0);
-            Dim G_i(0, 0) As Double = (0.0);
-            Dim trans_terminals(0, 0) As AgtSet = ();
-        }
         AgtType trans(0, 0)[0] {
             Dim ID(0, 0) As Integer = (0);
             Dim X(0, 0) As Double = (0.0);
@@ -109,6 +86,29 @@ UNIVERSE {
             Dim dG(0, 0) As Integer = (0);
             Dim area(0, 0) As Agt = (0);
         }
+        AgtType area(0, 0)[0] {
+            Dim ID(0, 0) As Integer = (0);
+            Dim X(0, 0) As Double = (0.0);
+            Dim Y(0, 0) As Double = (0.0);
+            Dim Layer(0, 0) As Integer = (0);
+            Dim Direction(0, 0) As Double = (0.0);
+            Dim dp(0, 0) As Double = (0.0);
+            Dim k(0, 0) As Double = (0.0);
+            Dim b(0, 0) As Double = (0.0);
+            Dim p(0, 0) As Double = (0.0);
+            Dim serial(0, 0) As Integer = (0);
+            Dim trans_out_set(0, 0) As AgtSet = ();
+            Dim trans_in_set(0, 0) As AgtSet = ();
+            Dim e_new(0, 0) As Double = (0.0);
+            Dim m(0, 0) As Double = (0.0);
+            Dim e(0, 0) As Double = (0.0);
+            Dim link(0, 0) As AgtSet = ();
+            Dim members(0, 0) As AgtSet = ();
+            Dim lamda(0, 0) As Double = (0.0);
+            Dim lamda_next(0, 0) As Double = (0.0);
+            Dim G_i(0, 0) As Double = (0.0);
+            Dim trans_terminals(0, 0) As AgtSet = ();
+        }
         AgtType solar(0, 0)[0] {
             Dim ID(0, 0) As Integer = (0);
             Dim X(0, 0) As Double = (0.0);
@@ -169,14 +169,14 @@ Initial_Value {
     UNIVERSE.ALPHA = 1(0.03);
     UNIVERSE.BETA = 1(0.02);
     UNIVERSE.LINK_RANGE_AREA = 1(50.0);
-    UNIVERSE.LINK_RANGE_PLAYER = 1(7.0);
+    UNIVERSE.LINK_RANGE_PLAYER = 1(4.0);
     UNIVERSE.COUNT = 1(0);
-    UNIVERSE.HOME_NUM = 1(50);
-    UNIVERSE.SOLAR_NUM = 1(50);
+    UNIVERSE.HOME_NUM = 1(40);
+    UNIVERSE.SOLAR_NUM = 1(40);
     UNIVERSE.AREA_NUM = 1(15);
     UNIVERSE.SPACE_WIDTH = 1(0.0);
     UNIVERSE.SPACE_HEIGHT = 1(0.0);
-    UNIVERSE.RANDOMSEED = 1(11.0);
+    UNIVERSE.RANDOMSEED = 1(13.0);
 }
 
 
@@ -379,7 +379,8 @@ if Universe.count== 0 Then //初回ステップのみ
 	next one
 	
 	//-------------------------------------------------------
-	//各地域エージェントのmembersにhomeやsolarを追加する
+	//各地域に需要供給家エージェントを配置
+	//各種エージェントをランダムに配置し，隣接するものをlinkに入れる(価格調整情報網)
 	//-------------------------------------------------------
 
 	For each one in area_set //各地域ごとに
@@ -388,15 +389,22 @@ if Universe.count== 0 Then //初回ステップのみ
 		ClearAgtSet(temp_agtset) //player_agtsetを初期化
 		
 		//homeエージェントの配置
-		num_temp=CInt(Universe.home_num/2*(1+Rnd())) //homeエージェント数をランダムで決定
-		player_agtset=SetPlayers("home", num_temp, r_max, one)
-
-		num_temp=CInt(CInt(Universe.solar_num/2*(1+Rnd()))) //solarエージェント数をランダムで決定
-		temp_agtset=SetPlayers("solar", num_temp, r_max, one)
+		num_temp=CInt(Universe.home_num/2*(1+Rnd())) //homeエージェント数をランダムで決定(1/2MAX~MAX)
+		SetPlayers("home", num_temp, r_max, one)
 		
+		//homeエージェントの配置
+		num_temp=CInt(CInt(Universe.solar_num/2*(1+Rnd()))) //solarエージェント数をランダムで決定(1/2MAX~MAX)
+		SetPlayers("solar", num_temp, r_max, one)
 
-
+		//player_agtsetに需要供給家エージェント(送電ターミナル含む)をリストアップ						
+		For each one2 in one.members
+			AddAgt(player_agtset, one2)
+		next one2
+		For each one2 in one.trans_terminals
+			AddAgt(player_agtset, one2)
+		next one2
 		
+		//孤立エージェントを修正する
 		loop_ct=0 //ループカウンタをリセット
 		Do While 1
 			check_counter=0
@@ -415,7 +423,7 @@ if Universe.count== 0 Then //初回ステップのみ
 					one2.X=one.X+r*cos(theta)
 					one2.Y=one.Y+r*sin(theta)
 				End if
-			next one
+			next one2
 			//孤立エージェントがない場合(check_counter=0のとき)Breakする
 			if check_counter==0 then
 				PrintLn("地域" & CStr(one.serial) & "の需要供給家の配置を完了しました")
@@ -428,15 +436,15 @@ if Universe.count== 0 Then //初回ステップのみ
 				Break
 			End if
 		Loop
-		//隣接する需要供給家
-		/*
+
+		//隣接する需要供給家をlinkに格納する(赤線)
 		For each one2 in player_agtset
 			ClearAgtset (one2.link) 
 			MakeAllAgtSetAroundPosition(one2.link, Universe.powergrid, one2.X, one2.Y, one2.Layer, Universe.link_range_player)
 			DelAgtSet2(one2.link, one2) //自分自身を除去
 			DelAgtSet(one2.link, area_set) //エリアエージェントを除去
-		next one
-		*/
+		next one2
+	
 	next one //各地域ごとに
 	
 End if //初回ステップのみ各エージェントの生成配置
@@ -577,42 +585,6 @@ Agt_Step{
 //-------------------------------------------------------
 // Agent Rule
 //-------------------------------------------------------
-#begin_rule UNIVERSE.POWERGRID.AREA
-Agt_Init{
-My.lamda=0
-My.lamda_next=0
-My.G_i=0
-}
-
-Agt_Step{
-Dim one as Agt
-
-My.G_i=0
-For each one in My.members
-	My.G_i=My.G_i+one.dG*one.x_i
-next one
-For each one in My.trans_out_set
-	My.G_i=My.G_i-one.x_i
-next one
-For each one in My.trans_in_set
-	My.G_i=My.G_i+one.x_i
-next one
-
-if Universe.time_min == 50 then
-	My.lamda_next= My.lamda+ Universe.beta * My.G_i
-end if
-
-My.p=My.lamda
-
-}
-#end_rule UNIVERSE.POWERGRID.AREA
-
-
-
-
-//-------------------------------------------------------
-// Agent Rule
-//-------------------------------------------------------
 #begin_rule UNIVERSE.POWERGRID.TRANS
 Agt_Init{
 My.C1=0.5
@@ -687,6 +659,42 @@ My.x_i_next=My.x_i - Universe.alpha * (-My.dU + My.dG * My.area.lamda )
 //-------------------------------------------------------
 // Agent Rule
 //-------------------------------------------------------
+#begin_rule UNIVERSE.POWERGRID.AREA
+Agt_Init{
+My.lamda=0
+My.lamda_next=0
+My.G_i=0
+}
+
+Agt_Step{
+Dim one as Agt
+
+My.G_i=0
+For each one in My.members
+	My.G_i=My.G_i+one.dG*one.x_i
+next one
+For each one in My.trans_out_set
+	My.G_i=My.G_i-one.x_i
+next one
+For each one in My.trans_in_set
+	My.G_i=My.G_i+one.x_i
+next one
+
+if Universe.time_min == 50 then
+	My.lamda_next= My.lamda+ Universe.beta * My.G_i
+end if
+
+My.p=My.lamda
+
+}
+#end_rule UNIVERSE.POWERGRID.AREA
+
+
+
+
+//-------------------------------------------------------
+// Agent Rule
+//-------------------------------------------------------
 #begin_rule UNIVERSE.POWERGRID.SOLAR
 Agt_Init{
 My.C1=0.8
@@ -754,10 +762,10 @@ Map_Output {
     Title = "powergrid";
     Disable = No;
     Background_Color = 255, 255, 255;
-    Position_x = 10;
-    Position_y = 10;
-    Size_x = 1033;
-    Size_y = 771;
+    Position_x = 30;
+    Position_y = 27;
+    Size_x = 1029;
+    Size_y = 818;
     Remarks = Yes;
     Legend_Pos = Top;
     Font_Name = "Dialog";
@@ -824,7 +832,7 @@ Map_Output {
         Output_Expression = "Universe.powergrid.home";
         Draw_Line = Yes;
         Collection_Name = "Universe.powergrid.home.link";
-        Line_Type = 2;
+        Line_Type = 1;
         Line_Arrow = 1;
         Line_Width = 1;
         Line_Color = 255, 0, 0;
@@ -857,7 +865,7 @@ Map_Output {
         Output_Expression = "Universe.powergrid.solar";
         Draw_Line = Yes;
         Collection_Name = "Universe.powergrid.solar.link";
-        Line_Type = 2;
+        Line_Type = 1;
         Line_Arrow = 1;
         Line_Width = 1;
         Line_Color = 255, 0, 0;
@@ -1307,7 +1315,7 @@ Time_Graph {
 // Control Panel Definition Division
 //-------------------------------------------------------
 Control_Panel {
-    Display_Area = 1465, 574, 195, 477;
+    Display_Area = 30, 482, 216, 407;
     Panel_Item {
         Item_Type = Edit_Box;
         Item_Name = "リンクレンジ(地域)";
@@ -1332,7 +1340,7 @@ Control_Panel {
         Font_Color = 0, 0, 0;
         Font_Background_Color = 0, 0, 0;
         Var_Name = "Universe.link_range_player";
-        Text_Data = "7.0";
+        Text_Data = "4.0";
     }
     Panel_Item {
         Item_Type = Edit_Box;
@@ -1358,7 +1366,7 @@ Control_Panel {
         Font_Color = 0, 0, 0;
         Font_Background_Color = 0, 0, 0;
         Var_Name = "Universe.solar_num";
-        Text_Data = "50";
+        Text_Data = "40";
     }
     Panel_Item {
         Item_Type = Edit_Box;
@@ -1371,7 +1379,7 @@ Control_Panel {
         Font_Color = 0, 0, 0;
         Font_Background_Color = 0, 0, 0;
         Var_Name = "Universe.home_num";
-        Text_Data = "50";
+        Text_Data = "40";
     }
     Panel_Item {
         Item_Type = Edit_Box;
@@ -1410,7 +1418,7 @@ Control_Panel {
         Font_Color = 0, 0, 0;
         Font_Background_Color = 0, 0, 0;
         Var_Name = "Universe.RandomSeed";
-        Text_Data = "11.0";
+        Text_Data = "13.0";
     }
 }
 
@@ -1433,8 +1441,8 @@ Others_Data {
     Debug_Position_y = 75;
     Debug_Size_x = 400;
     Debug_Size_y = 200;
-    Console_Position_x = 53;
-    Console_Position_y = 372;
+    Console_Position_x = 555;
+    Console_Position_y = 327;
     Console_Size_x = 515;
     Console_Size_y = 472;
     Componen_Tree_Position_x = 80;
@@ -1467,9 +1475,9 @@ Network_Info {
 // Window Location Definition Division
 //-------------------------------------------------------
 Window_Rectangle {
-    Window_Name = Main_Window, 0, 0, 1443, 978;
-    Window_Name = Output_Setting_Window, 545, 366, 480, 290;
-    Window_Name = Artisoc_Help_Window, -66, 384, 1190, 667;
+    Window_Name = Main_Window, -8, -8, 1936, 1066;
+    Window_Name = Output_Setting_Window, 587, 319, 480, 290;
+    Window_Name = Artisoc_Help_Window, 608, 182, 1190, 667;
 }
 
 
