@@ -449,6 +449,32 @@ if Universe.count== 0 Then //初回ステップのみ
 	
 End if //初回ステップのみ各エージェントの生成配置
 
+Dim clicked_x as Double
+Dim clicked_y as Double
+Dim clicked_map as String
+
+
+//-------------------------------------------------------
+//インタラクティブ表示
+//-------------------------------------------------------
+//マップをクリックすると地域の情報をコンソールに表示する
+if IsMouseClickedOnMap() then
+		GetClickedMapPosition(clicked_x, clicked_y, clicked_map)
+		
+		ClearAgtSet(area_set)
+		MakeAgtSet(area_set, Universe.powergrid.area)
+		
+		For Each one in area_set
+			If MeasureDistance(one.X, one.Y, clicked_x, clicked_y, Universe.powergrid) < 10 Then
+				PrintLn(" ")
+				PrintLn("クリックされた地域の情報(時刻：" & Universe.time_day & "日" & Universe.time_hour & "時" & Universe.time_min & "分)")
+				PrintLn("地域ID：" & one.serial)
+				PrintLn("停滞量：" & one.G_i)
+				PrintLn("価格：" & one.lamda)
+			End If
+		Next one
+		
+	end if
 }
 
 
@@ -762,8 +788,8 @@ Map_Output {
     Title = "powergrid";
     Disable = No;
     Background_Color = 255, 255, 255;
-    Position_x = 30;
-    Position_y = 27;
+    Position_x = 299;
+    Position_y = 4;
     Size_x = 1029;
     Size_y = 818;
     Remarks = Yes;
@@ -988,8 +1014,8 @@ Time_Graph {
     Remarks = Yes;
     Legend_Pos = Top;
     FastDraw = No;
-    Position_x = 251;
-    Position_y = 279;
+    Position_x = -196;
+    Position_y = 466;
     Size_x = 892;
     Size_y = 256;
     Axis_Label = "", "";
@@ -1241,8 +1267,8 @@ Numeric_Output {
     Font_Style = 0;
     Font_Color = 0, 0, 0;
     Font_Background_Color = 255, 255, 255;
-    Position_x = 21;
-    Position_y = 644;
+    Position_x = 14;
+    Position_y = 557;
     Size_x = 300;
     Size_y = 250;
     Numeric_Name = "time";
@@ -1315,7 +1341,7 @@ Time_Graph {
 // Control Panel Definition Division
 //-------------------------------------------------------
 Control_Panel {
-    Display_Area = 30, 482, 216, 407;
+    Display_Area = 81, 733, 216, 262;
     Panel_Item {
         Item_Type = Edit_Box;
         Item_Name = "リンクレンジ(地域)";
@@ -1441,8 +1467,8 @@ Others_Data {
     Debug_Position_y = 75;
     Debug_Size_x = 400;
     Debug_Size_y = 200;
-    Console_Position_x = 555;
-    Console_Position_y = 327;
+    Console_Position_x = 159;
+    Console_Position_y = 54;
     Console_Size_x = 515;
     Console_Size_y = 472;
     Componen_Tree_Position_x = 80;
@@ -1475,7 +1501,7 @@ Network_Info {
 // Window Location Definition Division
 //-------------------------------------------------------
 Window_Rectangle {
-    Window_Name = Main_Window, -8, -8, 1936, 1066;
+    Window_Name = Main_Window, 507, 20, 1165, 775;
     Window_Name = Output_Setting_Window, 587, 319, 480, 290;
     Window_Name = Artisoc_Help_Window, 608, 182, 1190, 667;
 }
