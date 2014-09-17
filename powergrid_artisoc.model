@@ -159,6 +159,13 @@ UNIVERSE {
     Dim space_width(0, 0) As Double = (0.0);
     Dim space_height(0, 0) As Double = (0.0);
     Dim RandomSeed(0, 0) As Double = (0.0);
+    Dim DATA_time_min(0, 0)[1440] As Double = ();
+    Dim DATA_e_total(0, 0)[1440] As Double = ();
+    Dim step_total(0, 0) As Integer = ();
+    Dim nego_mode(0, 0) As Boolean = ();
+    Dim nego_step_number(0, 0) As Integer = ();
+    Dim ct_nego(0, 0) As Integer = ();
+    Dim mode(0, 0) As String = ();
 }
 
 
@@ -177,6 +184,7 @@ Initial_Value {
     UNIVERSE.SPACE_WIDTH = 1(0.0);
     UNIVERSE.SPACE_HEIGHT = 1(0.0);
     UNIVERSE.RANDOMSEED = 1(13.0);
+    UNIVERSE.NEGO_STEP_NUMBER = 1(100);
 }
 
 
@@ -201,10 +209,21 @@ Dim i as Integer
 //-------------------------------------------------------
 //パラメータの設定＆事前処理
 //-------------------------------------------------------
+Dim calc_time_min as Integer 
+Dim temp_array(1440) as Double
+
+for i=0 to GetArraySize(temp_array)-1
+	temp_array( i )=0
+next i
+
+Universe.DATA_time_min=temp_array
+Universe.e_total=temp_array
 
 //空間のサイズを取得
 Universe.space_width=GetWidthSpace(Universe.powergrid) //空間の幅(x)
 Universe.space_height=GetHeightSpace(Universe.powergrid) //空間の高さ(y)
+
+//
 
 
 //-------------------------------------------------------
@@ -324,12 +343,12 @@ if Universe.count== 0 Then //初回ステップのみ
 	next one
 
 	//-------------------------------------------------------
-	//隣接する地域の間に送電エージェント(trans)を生成してtrans_inまたはtrans_outに格納
+	//隣接する地域の間に送電エージェント(trans)を生成してtrans_in_set(AgtSet)またはtrans_out_set(AgtSet)に格納
 	//serialが大きい地域から小さい地域へ流れがあるときを正とする
 	//<地域A>→<送電家Z>→<地域B>のように電力の流れがあるとすると
-	//・地域Aのserialが地域Bのserialより大きい
-	//・送電家Zは地域Aのtrans_out_set，地域Bのtrans_in_setに入る
-	//・送電家Zのfrom_playerは地域A，送電家Zのto_playerは地域B
+	//・地域Aのserial(Int)が地域Bのserialより大きい
+	//・送電家Zは地域Aのtrans_out_set(AgtSet)，地域Bのtrans_in_set(AgtSet)に入る
+	//・送電家Zのfrom_player(Agt)は地域A，送電家Zのto_player(Agt)は地域B
 	//-------------------------------------------------------	
 
 	For each one in area_set //地域エージェントそれぞれに(one)
@@ -349,8 +368,10 @@ if Universe.count== 0 Then //初回ステップのみ
 				
 				//-------------------------------------------------------
 				//送電ターミナルを生成して配置する
-				//地域A側のターミナルはtype="from"で，送電家Zのfrom_terminalに相当
-				//地域B側のターミナルはtype-"to"で，送電家のto_terminalに相当
+				//地域A側のターミナルはtype="from"(Str)で，送電家Zのfrom_terminal(Agt)に相当
+				//地域B側のターミナルはtype="to"(Str)で，送電家のto_terminal(Agt)に相当
+				//ターミナルはそれぞれの地域のtrans_terminals(AgtSet)に格納
+				//ターミナルのtrans(Agt)にそれぞれ紐づく送電家を格納
 				//-------------------------------------------------------
 				r=r_max*terminal_position				
 				//地域A側ターミナルの配置
@@ -380,7 +401,7 @@ if Universe.count== 0 Then //初回ステップのみ
 	
 	//-------------------------------------------------------
 	//各地域に需要供給家エージェントを配置
-	//各種エージェントをランダムに配置し，隣接するものをlinkに入れる(価格調整情報網)
+	//各種エージェントをランダムに配置し，隣接するものをlink(AgtSet)に入れる(価格調整情報網)
 	//-------------------------------------------------------
 
 	For each one in area_set //各地域ごとに
@@ -547,37 +568,66 @@ JoinAgtSet(player_agtset, temp_agtset) //transを追加
 PurifyAgtSet(player_agtset, player_agtset) //重複を削除
 
 //-------------------------------------------------------
-//状態量の更新
+//通常モード処理
 //-------------------------------------------------------
-//停滞量の総量を更新
-Universe.e_total=0
-For each one in area_agtset
-	Universe.e_total=Universe.e_total+one.G_i
-next one
+if Universe.nego_mode==false then 
+	//-------------------------------------------------------
+	//状態量の更新
+	//-------------------------------------------------------
+	//停滞量の総量を更新
+	Universe.e_total=0
+	For each one in area_agtset
+		Universe.e_total=Universe.e_total+one.G_i
+	next one
 
-//目的関数を更新
-Universe.U_total=0
-For each one in player_agtset
-	Universe.U_total=Universe.U_total+one.U
-next one
+	//目的関数を更新
+	Universe.U_total=0
+	For each one in player_agtset
+		Universe.U_total=Universe.U_total+one.U
+	next one
 
-//ラムダを更新
-For each one in area_agtset
-	one.lamda=one.lamda_next
-next one
+	//ラムダを更新
+	For each one in area_agtset
+		one.lamda=one.lamda_next
+	next one
 
-//x_iを更新
-For each one in player_agtset
-	one.x_i=one.x_i_next
-next one
+	//x_iを更新
+	For each one in player_agtset
+		one.x_i=one.x_i_next
+	next one
+
+	//-------------------------------------------------------
+	//時間の更新
+	//-------------------------------------------------------
+	Universe.count=Universe.count+1
+	Universe.time_min=count_min mod 60
+	Universe.time_day=count_min \ 1440
+	Universe.time_hour=(count_min mod 1440) \ 60
+	Universe.mode="通常モード"
+	
+	Universe.DATA_time_min(Universe.count)=count_min
+	Universe.DATA_e_total(Universe.count)=Universe.e_total
+	
+	//negoモードへの切り替え
+	if Universe.time_min==50 then
+		Universe.ct_nego=0
+		Universe.nego_mode=true
+	end if
+
+end if
 
 //-------------------------------------------------------
-//時間の更新
+//交渉モード処理
 //-------------------------------------------------------
-Universe.count=Universe.count+1
-Universe.time_min=count_min mod 60
-Universe.time_day=count_min \ 1440
-Universe.time_hour=(count_min mod 1440) \ 60
+if Universe.nego_mode==true then 
+	Universe.mode="交渉モード"
+	Universe.ct_nego=Universe.ct_nego+1
+	if Universe.ct_nego>=Universe.nego_step_number-1 then
+		Universe.nego_mode=false
+	end if
+end if
+
+Universe.step_total=Universe.step_total+1
 
 }
 
@@ -788,8 +838,8 @@ Map_Output {
     Title = "powergrid";
     Disable = No;
     Background_Color = 255, 255, 255;
-    Position_x = 299;
-    Position_y = 4;
+    Position_x = 355;
+    Position_y = -9;
     Size_x = 1029;
     Size_y = 818;
     Remarks = Yes;
@@ -966,15 +1016,15 @@ Time_Graph {
     Font_Background_Color = 255, 255, 255;
     Draw_Timing = Simulation_Step;
     Draw_Interval = 1;
-    Graph_Name = "合計停滞量";
+    Graph_Name = "Step Total";
     Title = "合計停滞量";
     Disable = No;
     Background_Color = 255, 255, 255;
     Remarks = Yes;
     Legend_Pos = Top;
     FastDraw = Yes;
-    Position_x = 267;
-    Position_y = 14;
+    Position_x = 325;
+    Position_y = 17;
     Size_x = 878;
     Size_y = 253;
     Axis_Label = "", "";
@@ -1014,8 +1064,8 @@ Time_Graph {
     Remarks = Yes;
     Legend_Pos = Top;
     FastDraw = No;
-    Position_x = -196;
-    Position_y = 466;
+    Position_x = 136;
+    Position_y = 357;
     Size_x = 892;
     Size_y = 256;
     Axis_Label = "", "";
@@ -1267,8 +1317,8 @@ Numeric_Output {
     Font_Style = 0;
     Font_Color = 0, 0, 0;
     Font_Background_Color = 255, 255, 255;
-    Position_x = 14;
-    Position_y = 557;
+    Position_x = 129;
+    Position_y = 566;
     Size_x = 300;
     Size_y = 250;
     Numeric_Name = "time";
@@ -1293,6 +1343,12 @@ Numeric_Output {
         Format_Id = 0;
         Output_Expression = "Universe.time_min";
     }
+    OUTPUT {
+        Output_Element_Name = "モード";
+        Figures = 0;
+        Format_Id = 0;
+        Output_Expression = "Universe.mode";
+    }
 }
 
 
@@ -1315,8 +1371,8 @@ Time_Graph {
     Remarks = Yes;
     Legend_Pos = Top;
     FastDraw = No;
-    Position_x = 353;
-    Position_y = 636;
+    Position_x = 252;
+    Position_y = 389;
     Size_x = 300;
     Size_y = 250;
     Axis_Label = "", "";
@@ -1338,10 +1394,47 @@ Time_Graph {
 
 
 //-------------------------------------------------------
+// Line Graph Output Definition Division
+//-------------------------------------------------------
+Line_Graph {
+    Font_Name = "Dialog";
+    Font_Char_Set = 81;
+    Font_Size = 12.0;
+    Font_Style = 0;
+    Font_Color = 0, 0, 0;
+    Font_Background_Color = 255, 255, 255;
+    Draw_Timing = Simulation_Step;
+    Draw_Interval = 1;
+    Graph_Name = "折れ線テスト";
+    Title = "合計停滞量";
+    Disable = No;
+    Background_Color = 255, 255, 255;
+    Remarks = Yes;
+    Legend_Pos = Top;
+    FastDraw = Yes;
+    Position_x = 171;
+    Position_y = 105;
+    Size_x = 769;
+    Size_y = 539;
+    Axis_Label = "min", "e_total";
+    Output_Group_Name = "";
+    Output {
+        Graph_Element_Name = "e_total";
+        Line_Color = 255, 0, 0;
+        Line_Width = 2;
+        The_Number_Of_Datas = "GetArraySize(Universe.DATA_time_min)";
+        Variable_Id_X_Axis = Universe.DATA_time_min;
+        Variable_Id_Y_Axis = Universe.DATA_e_total;
+        Graph_Element_Color = ;
+    }
+}
+
+
+//-------------------------------------------------------
 // Control Panel Definition Division
 //-------------------------------------------------------
 Control_Panel {
-    Display_Area = 81, 733, 216, 262;
+    Display_Area = 92, 588, 251, 376;
     Panel_Item {
         Item_Type = Edit_Box;
         Item_Name = "リンクレンジ(地域)";
@@ -1467,14 +1560,14 @@ Others_Data {
     Debug_Position_y = 75;
     Debug_Size_x = 400;
     Debug_Size_y = 200;
-    Console_Position_x = 159;
-    Console_Position_y = 54;
+    Console_Position_x = 970;
+    Console_Position_y = 241;
     Console_Size_x = 515;
     Console_Size_y = 472;
-    Componen_Tree_Position_x = 80;
-    Componen_Tree_Position_y = 115;
-    Componen_Tree_Size_x = 360;
-    Componen_Tree_Size_y = 762;
+    Componen_Tree_Position_x = 2;
+    Componen_Tree_Position_y = 2;
+    Componen_Tree_Size_x = 273;
+    Componen_Tree_Size_y = 726;
     Console_Background_Color = 16777215;
     Console_Foreground_Color = 255;
     Console_DisplayLines_Max = 500;
@@ -1501,9 +1594,9 @@ Network_Info {
 // Window Location Definition Division
 //-------------------------------------------------------
 Window_Rectangle {
-    Window_Name = Main_Window, 507, 20, 1165, 775;
-    Window_Name = Output_Setting_Window, 587, 319, 480, 290;
-    Window_Name = Artisoc_Help_Window, 608, 182, 1190, 667;
+    Window_Name = Main_Window, 122, 0, 1636, 1022;
+    Window_Name = Output_Setting_Window, 578, 366, 480, 290;
+    Window_Name = Artisoc_Help_Window, 901, 193, 1190, 667;
 }
 
 
