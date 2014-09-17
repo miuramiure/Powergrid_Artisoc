@@ -159,13 +159,13 @@ UNIVERSE {
     Dim space_width(0, 0) As Double = (0.0);
     Dim space_height(0, 0) As Double = (0.0);
     Dim RandomSeed(0, 0) As Double = (0.0);
-    Dim DATA_time_min(0, 0)[1440] As Double = ();
-    Dim DATA_e_total(0, 0)[1440] As Double = ();
-    Dim step_total(0, 0) As Integer = ();
-    Dim nego_mode(0, 0) As Boolean = ();
-    Dim nego_step_number(0, 0) As Integer = ();
-    Dim ct_nego(0, 0) As Integer = ();
-    Dim mode(0, 0) As String = ();
+    Dim DATA_time_min(0, 0)[1440] As Double = (1440*0.0);
+    Dim DATA_e_total(0, 0)[1440] As Double = (1440*0.0);
+    Dim step_total(0, 0) As Integer = (0);
+    Dim nego_mode(0, 0) As Boolean = (0);
+    Dim nego_step_number(0, 0) As Integer = (0);
+    Dim ct_nego(0, 0) As Integer = (0);
+    Dim mode(0, 0) As String = ("");
 }
 
 
@@ -1064,8 +1064,8 @@ Time_Graph {
     Remarks = Yes;
     Legend_Pos = Top;
     FastDraw = No;
-    Position_x = 136;
-    Position_y = 357;
+    Position_x = 385;
+    Position_y = 280;
     Size_x = 892;
     Size_y = 256;
     Axis_Label = "", "";
@@ -1317,10 +1317,10 @@ Numeric_Output {
     Font_Style = 0;
     Font_Color = 0, 0, 0;
     Font_Background_Color = 255, 255, 255;
-    Position_x = 129;
-    Position_y = 566;
+    Position_x = 261;
+    Position_y = 511;
     Size_x = 300;
-    Size_y = 250;
+    Size_y = 249;
     Numeric_Name = "time";
     Title = "time";
     Disable = No;
@@ -1348,6 +1348,12 @@ Numeric_Output {
         Figures = 0;
         Format_Id = 0;
         Output_Expression = "Universe.mode";
+    }
+    OUTPUT {
+        Output_Element_Name = "交渉ステップ";
+        Figures = 0;
+        Format_Id = 0;
+        Output_Expression = "Universe.ct_nego";
     }
 }
 
@@ -1425,7 +1431,7 @@ Line_Graph {
         The_Number_Of_Datas = "GetArraySize(Universe.DATA_time_min)";
         Variable_Id_X_Axis = Universe.DATA_time_min;
         Variable_Id_Y_Axis = Universe.DATA_e_total;
-        Graph_Element_Color = ;
+        Graph_Element_Color = (0, 0, 0);
     }
 }
 
@@ -1594,7 +1600,7 @@ Network_Info {
 // Window Location Definition Division
 //-------------------------------------------------------
 Window_Rectangle {
-    Window_Name = Main_Window, 122, 0, 1636, 1022;
+    Window_Name = Main_Window, 0, 0, 800, 700;
     Window_Name = Output_Setting_Window, 578, 366, 480, 290;
     Window_Name = Artisoc_Help_Window, 901, 193, 1190, 667;
 }
