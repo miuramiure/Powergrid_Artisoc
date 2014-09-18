@@ -21,14 +21,14 @@ UNIVERSE {
             Dim Direction(0, 0) As Double = (0.0);
             Dim type(0, 0) As String = ("");
             Dim area(0, 0) As Agt = (0);
-            Dim trans(0, 0) As Agt = ();
+            Dim trans(0, 0) As Agt = (0);
             Dim pair(0, 0) As AgtSet = ();
             Dim link(0, 0) As AgtSet = ();
             Dim theta(0, 0) As Double = (0.0);
             Dim theta_next(0, 0) As Double = (0.0);
             Dim lamda(0, 0) As Double = (0.0);
             Dim gamma(0, 0) As Double = (0.0);
-            Dim x_i(0, 0) As Double = ();
+            Dim x_i(0, 0) As Double = (0.0);
         }
         AgtType trans(0, 0)[0] {
             Dim ID(0, 0) As Integer = (0);
@@ -199,6 +199,7 @@ Initial_Value {
     UNIVERSE.SPACE_HEIGHT = 1(0.0);
     UNIVERSE.RANDOMSEED = 1(13.0);
     UNIVERSE.NEGO_STEP_NUMBER = 1(100);
+    UNIVERSE.GAMMA = 1(0.05);
 }
 
 
@@ -696,7 +697,7 @@ if Universe.nego_mode==true then
 		for each one in My.link
 			sigma=sigma+one.x_i
 		next one
-		My.theta=My.lamda+My.gamma*Universe.beta*sigma/CountAgtSet(My.link)
+		My.theta=My.lamda+My.gamma*Universe.beta*sigma
 	end if
 	
 	sigma=0
@@ -811,7 +812,7 @@ if Universe.nego_mode==true then
 		for each one in My.link
 			sigma=sigma+one.x_i
 		next one
-		My.theta=My.lamda+My.gamma*Universe.beta*sigma/CountAgtSet(My.link)
+		My.theta=My.lamda+My.gamma*Universe.beta*sigma
 	end if
 	
 	sigma=0
@@ -877,7 +878,7 @@ if Universe.nego_mode==true then
 		for each one in My.link
 			sigma=sigma+one.x_i
 		next one
-		My.theta=My.lamda+My.gamma*Universe.beta*sigma/CountAgtSet(My.link)
+		My.theta=My.lamda+My.gamma*Universe.beta*sigma
 	end if
 	
 	sigma=0
@@ -975,8 +976,8 @@ Map_Output {
     Title = "powergrid";
     Disable = No;
     Background_Color = 255, 255, 255;
-    Position_x = 447;
-    Position_y = 180;
+    Position_x = 259;
+    Position_y = 66;
     Size_x = 1029;
     Size_y = 818;
     Remarks = Yes;
@@ -1160,8 +1161,8 @@ Time_Graph {
     Remarks = Yes;
     Legend_Pos = Top;
     FastDraw = Yes;
-    Position_x = 431;
-    Position_y = 25;
+    Position_x = 125;
+    Position_y = 14;
     Size_x = 878;
     Size_y = 253;
     Axis_Label = "", "";
@@ -1555,8 +1556,8 @@ Line_Graph {
     Remarks = Yes;
     Legend_Pos = Top;
     FastDraw = Yes;
-    Position_x = 26;
-    Position_y = 44;
+    Position_x = 138;
+    Position_y = 198;
     Size_x = 769;
     Size_y = 539;
     Axis_Label = "min", "e_total";
@@ -1577,7 +1578,7 @@ Line_Graph {
 // Control Panel Definition Division
 //-------------------------------------------------------
 Control_Panel {
-    Display_Area = 41, 85, 251, 566;
+    Display_Area = 1148, 335, 251, 566;
     Panel_Item {
         Item_Type = Edit_Box;
         Item_Name = "ƒŠƒ“ƒNƒŒƒ“ƒW(’nˆæ)";
@@ -1680,7 +1681,7 @@ Control_Panel {
         Font_Color = 0, 0, 0;
         Font_Background_Color = 0, 0, 0;
         Var_Name = "Universe.gamma";
-        Text_Data = "0.0";
+        Text_Data = "0.05";
     }
     Panel_Item {
         Item_Type = Edit_Box;
@@ -1716,8 +1717,8 @@ Others_Data {
     Debug_Position_y = 75;
     Debug_Size_x = 400;
     Debug_Size_y = 200;
-    Console_Position_x = 146;
-    Console_Position_y = 44;
+    Console_Position_x = 46;
+    Console_Position_y = 22;
     Console_Size_x = 515;
     Console_Size_y = 472;
     Componen_Tree_Position_x = 72;
@@ -1750,7 +1751,7 @@ Network_Info {
 // Window Location Definition Division
 //-------------------------------------------------------
 Window_Rectangle {
-    Window_Name = Main_Window, 416, 0, 1379, 871;
+    Window_Name = Main_Window, 0, 0, 1366, 1030;
     Window_Name = Output_Setting_Window, 449, 290, 480, 290;
     Window_Name = Artisoc_Help_Window, 333, -19, 1190, 667;
 }
