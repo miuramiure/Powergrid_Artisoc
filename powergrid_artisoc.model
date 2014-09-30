@@ -29,6 +29,12 @@ UNIVERSE {
             Dim lamda(0, 0) As Double = (0.0);
             Dim gamma(0, 0) As Double = (0.0);
             Dim x_i(0, 0) As Double = (0.0);
+            Dim u_x(0, 0) As Double = (0.0);
+            Dim u_l(0, 0) As Double = (0.0);
+            Dim v_l(0, 0) As Double = (0.0);
+            Dim v_xl(0, 0) As Double = (0.0);
+            Dim a_i(0, 0) As Double = (0.0);
+            Dim b_i(0, 0) As Double = (0.0);
         }
         AgtType trans(0, 0)[0] {
             Dim ID(0, 0) As Integer = (0);
@@ -94,6 +100,13 @@ UNIVERSE {
             Dim theta_next(0, 0) As Double = (0.0);
             Dim lamda(0, 0) As Double = (0.0);
             Dim gamma(0, 0) As Double = (0.0);
+            Dim u_x(0, 0) As Double = (0.0);
+            Dim u_l(0, 0) As Double = (0.0);
+            Dim v_l(0, 0) As Double = (0.0);
+            Dim v_xl(0, 0) As Double = (0.0);
+            Dim a_i(0, 0) As Double = (0.0);
+            Dim b_i(0, 0) As Double = (0.0);
+            Dim sv_lamda(0, 0) As Double = ();
         }
         AgtType solar(0, 0)[0] {
             Dim ID(0, 0) As Integer = (0);
@@ -130,6 +143,12 @@ UNIVERSE {
             Dim theta_next(0, 0) As Double = (0.0);
             Dim lamda(0, 0) As Double = (0.0);
             Dim gamma(0, 0) As Double = (0.0);
+            Dim u_x(0, 0) As Double = (0.0);
+            Dim u_l(0, 0) As Double = (0.0);
+            Dim v_l(0, 0) As Double = (0.0);
+            Dim v_xl(0, 0) As Double = (0.0);
+            Dim a_i(0, 0) As Double = (0.0);
+            Dim b_i(0, 0) As Double = (0.0);
         }
         AgtType area(0, 0)[0] {
             Dim ID(0, 0) As Integer = (0);
@@ -153,6 +172,7 @@ UNIVERSE {
             Dim lamda_next(0, 0) As Double = (0.0);
             Dim G_i(0, 0) As Double = (0.0);
             Dim trans_terminals(0, 0) As AgtSet = ();
+            Dim nego_convergence(0, 0) As Double = (0.0);
         }
     }
     Dim alpha(0, 0) As Double = (0.0);
@@ -172,14 +192,17 @@ UNIVERSE {
     Dim space_width(0, 0) As Double = (0.0);
     Dim space_height(0, 0) As Double = (0.0);
     Dim RandomSeed(0, 0) As Double = (0.0);
-    Dim DATA_time_min(0, 0)[1440] As Double = (1440*0.0);
-    Dim DATA_e_total(0, 0)[1440] As Double = (1440*0.0);
+    Dim DATA_time_min(0, 0)[14400] As Double = ();
+    Dim DATA_e_total(0, 0)[14400] As Double = ();
     Dim step_total(0, 0) As Integer = (0);
     Dim nego_mode(0, 0) As Boolean = (0);
     Dim nego_step_number(0, 0) As Integer = (0);
     Dim ct_nego(0, 0) As Integer = (0);
     Dim mode(0, 0) As String = ("");
     Dim gamma(0, 0) As Double = (0.0);
+    Dim estimation_mode(0, 0) As Boolean = (0);
+    Dim s(0, 0) As Integer = (0);
+    Dim distribution_mode(0, 0) As Boolean = (0);
 }
 
 
@@ -187,10 +210,10 @@ UNIVERSE {
 // Agent Variable Initial Data
 //-------------------------------------------------------
 Initial_Value {
-    UNIVERSE.ALPHA = 1(0.03);
-    UNIVERSE.BETA = 1(0.02);
+    UNIVERSE.ALPHA = 1(0.05);
+    UNIVERSE.BETA = 1(0.05);
     UNIVERSE.LINK_RANGE_AREA = 1(50.0);
-    UNIVERSE.LINK_RANGE_PLAYER = 1(4.0);
+    UNIVERSE.LINK_RANGE_PLAYER = 1(5.0);
     UNIVERSE.COUNT = 1(0);
     UNIVERSE.HOME_NUM = 1(40);
     UNIVERSE.SOLAR_NUM = 1(40);
@@ -199,7 +222,10 @@ Initial_Value {
     UNIVERSE.SPACE_HEIGHT = 1(0.0);
     UNIVERSE.RANDOMSEED = 1(13.0);
     UNIVERSE.NEGO_STEP_NUMBER = 1(100);
-    UNIVERSE.GAMMA = 1(0.05);
+    UNIVERSE.GAMMA = 1(0.03);
+    UNIVERSE.ESTIMATION_MODE = 1(1);
+    UNIVERSE.S = 1(0);
+    UNIVERSE.DISTRIBUTION_MODE = 1(1);
 }
 
 
@@ -238,8 +264,14 @@ Universe.e_total=temp_array
 Universe.space_width=GetWidthSpace(Universe.powergrid) //空間の幅(x)
 Universe.space_height=GetHeightSpace(Universe.powergrid) //空間の高さ(y)
 
-//
+//モード表示
+if Universe.distribution_mode==true then
+	PrintLn("交渉型価格調整ON（非スーパバイザ）")
+end if
 
+if Universe.estimation_mode==true then
+	PrintLn("需要供給量予測ON（逐次線形回帰）")
+end if
 
 //-------------------------------------------------------
 //エージェントの生成と配置
@@ -498,15 +530,22 @@ if IsMouseClickedOnMap() then
 		GetClickedMapPosition(clicked_x, clicked_y, clicked_map)
 		
 		ClearAgtSet(area_set)
-		MakeAgtSet(area_set, Universe.powergrid.area)
+		MakeAgtSet(area_set, Universe.powergrid.home)
 		
 		For Each one in area_set
-			If MeasureDistance(one.X, one.Y, clicked_x, clicked_y, Universe.powergrid) < 10 Then
+			If MeasureDistance(one.X, one.Y, clicked_x, clicked_y, Universe.powergrid) < 5 Then
 				PrintLn(" ")
-				PrintLn("クリックされた地域の情報(時刻：" & Universe.time_day & "日" & Universe.time_hour & "時" & Universe.time_min & "分)")
-				PrintLn("地域ID：" & one.serial)
-				PrintLn("停滞量：" & one.G_i)
-				PrintLn("価格：" & one.lamda)
+				PrintLn("クリックされたエージェントの情報(時刻：" & Universe.time_day & "日" & Universe.time_hour & "時" & Universe.time_min & "分)")
+				PrintLn("ID：" & one.ID)
+				PrintLn("x_i：" & one.x_i)
+				PrintLn("a_i：" & one.a_i)
+				PrintLn("b_i：" & one.b_i)
+				//PrintLn("停滞量：" & one.G_i)
+				PrintLn("推定価格：" & one.lamda)
+				PrintLn("SV方式価格：" & one.sv_lamda)
+				PrintLn("需要供給量予測値：" & one.a_i*one.lamda+one.b_i)
+				PrintLn("theta：" & one.theta)
+				//PrintLn("価格差：" & one.nego_convergence)
 			End If
 		Next one
 		
@@ -558,10 +597,13 @@ Univ_Step_End{
 //変数の宣言
 //-------------------------------------------------------
 Dim temp_agtset as AgtSet
+Dim temp_agtset2 as AgtSet
 Dim area_agtset as AgtSet
 Dim player_agtset as AgtSet //home,solar,trans
 Dim negotiator_agtset as AgtSet //home,solar,trans_terminal
 Dim count_min as Integer
+Dim max_agt as Agt
+Dim min_agt as Agt
 
 //-------------------------------------------------------
 //パラメータの設定＆事前処理
@@ -572,6 +614,7 @@ ClearAgtset (area_agtset)
 ClearAgtset(player_agtset)
 ClearAgtset (negotiator_agtset )
 ClearAgtset (temp_agtset)
+ClearAgtset (temp_agtset2)
 
 //全ての地域を取得
 MakeAgtSet(area_agtset , Universe.powergrid.area)
@@ -620,11 +663,23 @@ if Universe.nego_mode==false then
 	For each one in player_agtset
 		one.x_i=one.x_i_next
 	next one
+	
+	//各エリア内の交渉価格MAX-交渉価格MIN
+	For each one in area_agtset
+		ClearAgtset (temp_agtset)
+		//temp_agtset=one.members
+		//JoinAgtSet(temp_agtset, one.trans_terminals)
+		SortAgtSet(one.members,"lamda",True)
+		max_agt = GetAgt(one.members,0)
+		SortAgtSet(one.members,"lamda",False)
+		min_agt = GetAgt(one.members,0)		
+		one.nego_convergence=max_agt.lamda-min_agt.lamda
+		//one.nego_convergence=max_agt.lamda
+	next one
 
 	//-------------------------------------------------------
-	//時間の更新
+	//時刻の取得
 	//-------------------------------------------------------
-	Universe.count=Universe.count+1
 	Universe.time_min=count_min mod 60
 	Universe.time_day=count_min \ 1440
 	Universe.time_hour=(count_min mod 1440) \ 60
@@ -634,10 +689,15 @@ if Universe.nego_mode==false then
 	Universe.DATA_e_total(Universe.count)=Universe.e_total
 	
 	//negoモードへの切り替え
-	if Universe.time_min==50 then
+	if Universe.time_min==0 And Universe.count !=0 And Universe.distribution_mode==true then
 		Universe.ct_nego=0
 		Universe.nego_mode=true
 	end if
+	
+	//-------------------------------------------------------
+	//時間の更新
+	//-------------------------------------------------------
+	Universe.count=Universe.count+1
 
 end if
 
@@ -649,6 +709,7 @@ if Universe.nego_mode==true then
 	Universe.ct_nego=Universe.ct_nego+1
 	if Universe.ct_nego>Universe.nego_step_number then
 		Universe.nego_mode=false
+		Universe.s=Universe.s+1
 	end if
 	
 //thetaを更新
@@ -679,25 +740,37 @@ Univ_Finish{
 //-------------------------------------------------------
 #begin_rule UNIVERSE.POWERGRID.TRANS_TERMINAL
 Agt_Init{
+My.lamda=0
 My.gamma=Universe.gamma
+My.u_x=0
+My.u_l=0
+My.v_l=0
+My.v_xl=0
+My.a_i=0
+My.b_i=0
 }
 
 Agt_Step{
 Dim one as Agt
 Dim sigma as Double
+Dim init as Double
 
+//My.gamma=1/CountAgtSet(My.link)*Universe.gamma
 My.x_i=My.trans.x_i
 
 //-------------------------------------------------------
 //交渉モード処理
 //-------------------------------------------------------
 if Universe.nego_mode==true then 
+
 	if Universe.ct_nego==1 then
-		sigma=My.trans.x_i
-		for each one in My.link
-			sigma=sigma+one.x_i
-		next one
-		My.theta=My.lamda+My.gamma*Universe.beta*sigma
+ 		if Universe.estimation_mode==true then
+			init=My.a_i*My.lamda+My.b_i
+		else
+			init=My.trans.x_i
+		end if
+		
+		My.theta=My.lamda+My.gamma*Universe.beta*init
 	end if
 	
 	sigma=0
@@ -707,8 +780,22 @@ if Universe.nego_mode==true then
 	My.theta_next=My.theta-My.gamma*sigma	
 	
 	if Universe.ct_nego==Universe.nego_step_number then
+		if Universe.estimation_mode==true then
+			My.u_x=My.u_x+My.x_i
+			My.u_l=My.u_l+My.lamda
+			My.v_l=My.v_l+My.lamda^2
+			My.v_xl=My.v_xl+My.x_i*My.lamda
+			if Universe.s*My.v_l-My.u_l^2 != 0 then
+				My.a_i=(Universe.s*My.v_xl-My.u_x*My.u_l)/(Universe.s*My.v_l-My.u_l^2)
+				My.b_i=(My.v_l*My.u_x-My.v_xl*My.u_l)/(Universe.s*My.v_l-My.u_l^2)
+			else
+				My.a_i=0
+				My.b_i=0
+			end if
+		end if	
 		My.lamda=My.theta_next
 	end if	
+	
 end if
 }
 #end_rule UNIVERSE.POWERGRID.TRANS_TERMINAL
@@ -721,9 +808,9 @@ end if
 //-------------------------------------------------------
 #begin_rule UNIVERSE.POWERGRID.TRANS
 Agt_Init{
-My.C1=0.5
-My.C2=1.0
-My.C3=1.0
+My.C1=0.5*Rnd()
+My.C2=1.0*Rnd()
+My.C3=1.0*Rnd()
 //My.C4=0.2
 //My.D1=1.0
 //My.D2=0.5
@@ -751,7 +838,12 @@ if Universe.nego_mode==false then
 		end if
 	end if
 	
-	My.x_i_next=My.x_i - Universe.alpha * (-My.dU - My.from_terminal.lamda+My.to_terminal.lamda )
+	if Universe.distribution_mode==true then
+		My.x_i_next=My.x_i - Universe.alpha * (-My.dU - My.from_terminal.lamda+My.to_terminal.lamda )
+	Else
+		My.x_i_next=My.x_i - Universe.alpha * (-My.dU - My.from_player.lamda+My.to_player.lamda )
+	end if
+
 end if
 
 //-------------------------------------------------------
@@ -772,20 +864,31 @@ end if
 //-------------------------------------------------------
 #begin_rule UNIVERSE.POWERGRID.HOME
 Agt_Init{
-My.C1=0.5
-My.C2=1.0
-My.C3=1.0
-My.C4=0.2
+My.lamda=0
+My.C1=0.5*Rnd()
+My.C2=1.0*Rnd()
+My.C3=1.0*Rnd()
+My.C4=0.2*Rnd()
 //My.D1=1.0
 //My.D2=0.5
 //My.D3=1.0
 My.dG=-1
 My.gamma=Universe.gamma
+My.u_x=0
+My.u_l=0
+My.v_l=0
+My.v_xl=0
+My.a_i=0
+My.b_i=0
 }
 
 Agt_Step{
 Dim one as Agt
 Dim sigma as Double
+Dim init as Double
+
+My.sv_lamda=My.area.lamda
+//My.gamma=1/CountAgtSet(My.link)*Universe.gamma
 
 //-------------------------------------------------------
 //通常モード処理
@@ -799,20 +902,30 @@ if Universe.nego_mode==false then
 		My.U=-My.C4*(My.x_i-My.C1)^2+My.C2
 		My.dU=-2*My.C4*(My.x_i-My.C1)
 	end if
+	
 	//状態量の更新
-	My.x_i_next=My.x_i - Universe.alpha * (-My.dU + My.dG * My.lamda)
+	if Universe.distribution_mode==true then
+		My.x_i_next=My.x_i - Universe.alpha * (-My.dU + My.dG * My.lamda )
+	Else
+		My.x_i_next=My.x_i - Universe.alpha * (-My.dU + My.dG * My.area.lamda )
+	end if
+	
 end if
 
 //-------------------------------------------------------
 //交渉モード処理
 //-------------------------------------------------------
 if Universe.nego_mode==true then 
+
 	if Universe.ct_nego==1 then
-		sigma=My.x_i
-		for each one in My.link
-			sigma=sigma+one.x_i
-		next one
-		My.theta=My.lamda+My.gamma*Universe.beta*sigma
+		
+		if Universe.estimation_mode==true then
+			init=My.a_i*My.lamda+My.b_i
+		else
+			init=My.x_i
+		end if
+	
+		My.theta=My.lamda+My.gamma*Universe.beta*My.x_i
 	end if
 	
 	sigma=0
@@ -822,8 +935,23 @@ if Universe.nego_mode==true then
 	My.theta_next=My.theta-My.gamma*sigma	
 	
 	if Universe.ct_nego==Universe.nego_step_number then
+		if Universe.estimation_mode==true then
+			My.u_x=My.u_x+My.x_i
+			My.u_l=My.u_l+My.lamda
+			My.v_l=My.v_l+My.lamda^2
+			My.v_xl=My.v_xl+My.x_i*My.lamda
+			if Universe.s*My.v_l-My.u_l^2 != 0 then
+				My.a_i=(Universe.s*My.v_xl-My.u_x*My.u_l)/(Universe.s*My.v_l-My.u_l^2)
+				My.b_i=(My.v_l*My.u_x-My.v_xl*My.u_l)/(Universe.s*My.v_l-My.u_l^2)
+			else
+				My.a_i=0
+				My.b_i=0
+			end if
+		end if	
+	
 		My.lamda=My.theta_next
 	end if	
+	
 end if
 
 
@@ -838,20 +966,30 @@ end if
 //-------------------------------------------------------
 #begin_rule UNIVERSE.POWERGRID.SOLAR
 Agt_Init{
-My.C1=0.8
-My.C2=1.0
-My.C3=0.2
-My.C4=1.0
+My.lamda=0
+My.C1=0.8*Rnd()
+My.C2=1.0*Rnd()
+My.C3=0.2*Rnd()
+My.C4=1.0*Rnd()
 //My.D1=1.0
 //My.D2=0.5
 //My.D3=1.0
 My.dG=1
 My.gamma=Universe.gamma
+My.u_x=0
+My.u_l=0
+My.v_l=0
+My.v_xl=0
+My.a_i=0
+My.b_i=0
 }
 
 Agt_Step{
 Dim one as Agt
 Dim sigma as Double
+Dim init as Double
+
+//My.gamma=1/CountAgtSet(My.link)*Universe.gamma
 
 //-------------------------------------------------------
 //通常モード処理
@@ -866,19 +1004,28 @@ if Universe.nego_mode==false then
 		My.dU=-2*My.C4*(My.x_i-My.C1)
 	end if
 	
-	My.x_i_next=My.x_i - Universe.alpha * (-My.dU + My.dG * My.area.lamda )
+	if Universe.distribution_mode==true then
+		My.x_i_next=My.x_i - Universe.alpha * (-My.dU + My.dG * My.lamda )
+	Else
+		My.x_i_next=My.x_i - Universe.alpha * (-My.dU + My.dG * My.area.lamda )
+	end if
+	
 end if
 
 //-------------------------------------------------------
 //交渉モード処理
 //-------------------------------------------------------
 if Universe.nego_mode==true then 
+
 	if Universe.ct_nego==1 then
-		sigma=My.x_i
-		for each one in My.link
-			sigma=sigma+one.x_i
-		next one
-		My.theta=My.lamda+My.gamma*Universe.beta*sigma
+	
+		if Universe.estimation_mode==true then
+			init=My.a_i*My.lamda+My.b_i
+		else
+			init=My.x_i
+		end if
+		
+		My.theta=My.lamda+My.gamma*Universe.beta*init
 	end if
 	
 	sigma=0
@@ -888,8 +1035,22 @@ if Universe.nego_mode==true then
 	My.theta_next=My.theta-My.gamma*sigma	
 	
 	if Universe.ct_nego==Universe.nego_step_number then
+		if Universe.estimation_mode==true then
+			My.u_x=My.u_x+My.x_i
+			My.u_l=My.u_l+My.lamda
+			My.v_l=My.v_l+My.lamda^2
+			My.v_xl=My.v_xl+My.x_i*My.lamda
+			if Universe.s*My.v_l-My.u_l^2 != 0 then
+				My.a_i=(Universe.s*My.v_xl-My.u_x*My.u_l)/(Universe.s*My.v_l-My.u_l^2)
+				My.b_i=(My.v_l*My.u_x-My.v_xl*My.u_l)/(Universe.s*My.v_l-My.u_l^2)
+			else
+				My.a_i=0
+				My.b_i=0
+			end if
+		end if	
 		My.lamda=My.theta_next
 	end if	
+	
 end if
 
 }
@@ -926,7 +1087,7 @@ if Universe.nego_mode==false then
 		My.G_i=My.G_i+one.x_i
 	next one
 
-	if Universe.time_min == 50 then
+	if Universe.time_min == 0 then
 		My.lamda_next= My.lamda+ Universe.beta * My.G_i
 	end if
 
@@ -976,8 +1137,8 @@ Map_Output {
     Title = "powergrid";
     Disable = No;
     Background_Color = 255, 255, 255;
-    Position_x = 259;
-    Position_y = 66;
+    Position_x = 620;
+    Position_y = 9;
     Size_x = 1029;
     Size_y = 818;
     Remarks = Yes;
@@ -995,7 +1156,7 @@ Map_Output {
     Draw_Range = 0, 0, 150, 150;
     Ruled_Line = No;
     Text_Display = No;
-    Text_Display_Variable_Name = "";
+    Text_Display_Variable_Name = "Universe.mode";
     Chess_Type_Display_Position = Yes;
     Background_Transparent = No;
     Target_Layer = 0;
@@ -1041,7 +1202,7 @@ Map_Output {
         Agent_Image_Transparency_Variable_Name = "Universe.powergrid.trans_terminal.ID";
     }
     Output {
-        Map_Element_Name = "需要家(一般家庭)";
+        Map_Element_Name = "需要家";
         Map_Element = Agent_Variable;
         Output_Expression = "Universe.powergrid.home";
         Draw_Line = Yes;
@@ -1074,7 +1235,7 @@ Map_Output {
         Agent_Image_Transparency_Variable_Name = "Universe.powergrid.home.ID";
     }
     Output {
-        Map_Element_Name = "発電家(太陽光発電)";
+        Map_Element_Name = "発電家";
         Map_Element = Agent_Variable;
         Output_Expression = "Universe.powergrid.solar";
         Draw_Line = Yes;
@@ -1087,7 +1248,7 @@ Map_Output {
         Line_Arrow_Variable = "";
         Line_Width_Variable = "";
         Line_Color_Variable = "";
-        Agent_Color = 0,0,255;
+        Agent_Color = 255,0,0;
         Marker_Id = -1;
         Effective_Figures = 0;
         Format_Id = 0;
@@ -1161,10 +1322,10 @@ Time_Graph {
     Remarks = Yes;
     Legend_Pos = Top;
     FastDraw = Yes;
-    Position_x = 125;
-    Position_y = 14;
+    Position_x = 263;
+    Position_y = 57;
     Size_x = 878;
-    Size_y = 253;
+    Size_y = 311;
     Axis_Label = "", "";
     Draw_By_JFree_Chart = Yes;
     Scale = 0, 0.0, 1000, 100.0, 100, 10.0;
@@ -1202,10 +1363,10 @@ Time_Graph {
     Remarks = Yes;
     Legend_Pos = Top;
     FastDraw = No;
-    Position_x = 841;
-    Position_y = 280;
-    Size_x = 436;
-    Size_y = 256;
+    Position_x = 353;
+    Position_y = 131;
+    Size_x = 1036;
+    Size_y = 453;
     Axis_Label = "", "";
     Draw_By_JFree_Chart = Yes;
     Scale = 0, 0.0, 1000, 100.0, 100, 10.0;
@@ -1455,8 +1616,8 @@ Numeric_Output {
     Font_Style = 0;
     Font_Color = 0, 0, 0;
     Font_Background_Color = 255, 255, 255;
-    Position_x = 25;
-    Position_y = 563;
+    Position_x = 17;
+    Position_y = 512;
     Size_x = 300;
     Size_y = 249;
     Numeric_Name = "time";
@@ -1556,10 +1717,10 @@ Line_Graph {
     Remarks = Yes;
     Legend_Pos = Top;
     FastDraw = Yes;
-    Position_x = 138;
-    Position_y = 198;
-    Size_x = 769;
-    Size_y = 539;
+    Position_x = 280;
+    Position_y = 374;
+    Size_x = 977;
+    Size_y = 564;
     Axis_Label = "min", "e_total";
     Output_Group_Name = "";
     Output {
@@ -1578,7 +1739,7 @@ Line_Graph {
 // Control Panel Definition Division
 //-------------------------------------------------------
 Control_Panel {
-    Display_Area = 1148, 335, 251, 566;
+    Display_Area = 1654, 172, 266, 743;
     Panel_Item {
         Item_Type = Edit_Box;
         Item_Name = "リンクレンジ(地域)";
@@ -1603,7 +1764,7 @@ Control_Panel {
         Font_Color = 0, 0, 0;
         Font_Background_Color = 0, 0, 0;
         Var_Name = "Universe.link_range_player";
-        Text_Data = "4.0";
+        Text_Data = "5.0";
     }
     Panel_Item {
         Item_Type = Edit_Box;
@@ -1655,7 +1816,7 @@ Control_Panel {
         Font_Color = 0, 0, 0;
         Font_Background_Color = 0, 0, 0;
         Var_Name = "Universe.alpha";
-        Text_Data = "0.03";
+        Text_Data = "0.05";
     }
     Panel_Item {
         Item_Type = Edit_Box;
@@ -1668,7 +1829,7 @@ Control_Panel {
         Font_Color = 0, 0, 0;
         Font_Background_Color = 0, 0, 0;
         Var_Name = "Universe.beta";
-        Text_Data = "0.02";
+        Text_Data = "0.05";
     }
     Panel_Item {
         Item_Type = Edit_Box;
@@ -1681,7 +1842,7 @@ Control_Panel {
         Font_Color = 0, 0, 0;
         Font_Background_Color = 0, 0, 0;
         Var_Name = "Universe.gamma";
-        Text_Data = "0.05";
+        Text_Data = "0.03";
     }
     Panel_Item {
         Item_Type = Edit_Box;
@@ -1695,6 +1856,54 @@ Control_Panel {
         Font_Background_Color = 0, 0, 0;
         Var_Name = "Universe.RandomSeed";
         Text_Data = "13.0";
+    }
+    Panel_Item {
+        Item_Type = Toggle;
+        Item_Name = "交渉型価格調整ON";
+        Display_Area = 0, 0, 0, 0;
+        Font_Name = "";
+        Font_Char_Set = 0;
+        Font_Size = 0.0;
+        Font_Style = 0;
+        Font_Color = 0, 0, 0;
+        Font_Background_Color = 0, 0, 0;
+        Var_Name = "Universe.distribution_mode";
+        Control_On = Yes;
+        Control_On_Int = 0;
+        Control_On_Long = 0;
+        Control_On_Double = 0.0;
+        Control_On_String = "";
+        Control_Off = No;
+        Control_Off_Int = 0;
+        Control_Off_Long = 0;
+        Control_Off_Double = 0.0;
+        Control_Off_String = "";
+        Toggle_Button_On = Yes;
+        Shortcut_Key = "";
+    }
+    Panel_Item {
+        Item_Type = Toggle;
+        Item_Name = "需要供給量予測ON";
+        Display_Area = 0, 0, 0, 0;
+        Font_Name = "";
+        Font_Char_Set = 0;
+        Font_Size = 0.0;
+        Font_Style = 0;
+        Font_Color = 0, 0, 0;
+        Font_Background_Color = 0, 0, 0;
+        Var_Name = "Universe.estimation_mode";
+        Control_On = Yes;
+        Control_On_Int = 0;
+        Control_On_Long = 0;
+        Control_On_Double = 0.0;
+        Control_On_String = "";
+        Control_Off = No;
+        Control_Off_Int = 0;
+        Control_Off_Long = 0;
+        Control_Off_Double = 0.0;
+        Control_Off_String = "";
+        Toggle_Button_On = Yes;
+        Shortcut_Key = "";
     }
 }
 
@@ -1717,14 +1926,14 @@ Others_Data {
     Debug_Position_y = 75;
     Debug_Size_x = 400;
     Debug_Size_y = 200;
-    Console_Position_x = 46;
-    Console_Position_y = 22;
+    Console_Position_x = 336;
+    Console_Position_y = 167;
     Console_Size_x = 515;
     Console_Size_y = 472;
-    Componen_Tree_Position_x = 72;
-    Componen_Tree_Position_y = 355;
-    Componen_Tree_Size_x = 250;
-    Componen_Tree_Size_y = 400;
+    Componen_Tree_Position_x = 2;
+    Componen_Tree_Position_y = 2;
+    Componen_Tree_Size_x = 255;
+    Componen_Tree_Size_y = 519;
     Console_Background_Color = 16777215;
     Console_Foreground_Color = 255;
     Console_DisplayLines_Max = 500;
@@ -1751,9 +1960,9 @@ Network_Info {
 // Window Location Definition Division
 //-------------------------------------------------------
 Window_Rectangle {
-    Window_Name = Main_Window, 0, 0, 1366, 1030;
-    Window_Name = Output_Setting_Window, 449, 290, 480, 290;
-    Window_Name = Artisoc_Help_Window, 333, -19, 1190, 667;
+    Window_Name = Main_Window, 0, 0, 1609, 868;
+    Window_Name = Output_Setting_Window, 532, 380, 480, 290;
+    Window_Name = Artisoc_Help_Window, 636, 45, 1190, 667;
 }
 
 
