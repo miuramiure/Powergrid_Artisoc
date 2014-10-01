@@ -203,7 +203,7 @@ UNIVERSE {
     Dim estimation_mode(0, 0) As Boolean = (0);
     Dim s(0, 0) As Integer = (0);
     Dim distribution_mode(0, 0) As Boolean = (0);
-    Dim beta_d(0, 0) As Double = ();
+    Dim beta_d(0, 0) As Double = (0.0);
 }
 
 
@@ -224,7 +224,7 @@ Initial_Value {
     UNIVERSE.RANDOMSEED = 1(10.0);
     UNIVERSE.NEGO_STEP_NUMBER = 1(100);
     UNIVERSE.GAMMA = 1(0.03);
-    UNIVERSE.ESTIMATION_MODE = 1(0);
+    UNIVERSE.ESTIMATION_MODE = 1(1);
     UNIVERSE.S = 1(0);
     UNIVERSE.DISTRIBUTION_MODE = 1(1);
     UNIVERSE.BETA_D = 1(0.1);
@@ -749,7 +749,7 @@ My.u_l=0
 My.v_l=0
 My.v_xl=0
 My.a_i=0
-My.b_i=0
+My.b_i=0.5
 }
 
 Agt_Step{
@@ -792,7 +792,7 @@ if Universe.nego_mode==true then
 				My.b_i=(My.v_l*My.u_x-My.v_xl*My.u_l)/(Universe.s*My.v_l-My.u_l^2)
 			else
 				My.a_i=0
-				My.b_i=0
+				My.b_i=0.5
 			end if
 		end if	
 		My.lamda=My.theta_next
@@ -881,7 +881,7 @@ My.u_l=0
 My.v_l=0
 My.v_xl=0
 My.a_i=0
-My.b_i=0
+My.b_i=0.5
 }
 
 Agt_Step{
@@ -947,7 +947,7 @@ if Universe.nego_mode==true then
 				My.b_i=(My.v_l*My.u_x-My.v_xl*My.u_l)/(Universe.s*My.v_l-My.u_l^2)
 			else
 				My.a_i=0
-				My.b_i=0
+				My.b_i=0.5
 			end if
 		end if	
 		My.lamda=My.theta_next
@@ -982,7 +982,7 @@ My.u_l=0
 My.v_l=0
 My.v_xl=0
 My.a_i=0
-My.b_i=0
+My.b_i=0.5
 }
 
 Agt_Step{
@@ -1046,7 +1046,7 @@ if Universe.nego_mode==true then
 				My.b_i=(My.v_l*My.u_x-My.v_xl*My.u_l)/(Universe.s*My.v_l-My.u_l^2)
 			else
 				My.a_i=0
-				My.b_i=0
+				My.b_i=0.5
 			end if
 		end if	
 		My.lamda=My.theta_next
@@ -1138,10 +1138,10 @@ Map_Output {
     Title = "powergrid";
     Disable = No;
     Background_Color = 255, 255, 255;
-    Position_x = 755;
-    Position_y = 28;
+    Position_x = 555;
+    Position_y = 10;
     Size_x = 1029;
-    Size_y = 818;
+    Size_y = 738;
     Remarks = Yes;
     Legend_Pos = Top;
     Font_Name = "Dialog";
@@ -1567,8 +1567,8 @@ Numeric_Output {
     Font_Style = 0;
     Font_Color = 0, 0, 0;
     Font_Background_Color = 255, 255, 255;
-    Position_x = -3;
-    Position_y = 701;
+    Position_x = 45;
+    Position_y = 465;
     Size_x = 300;
     Size_y = 249;
     Numeric_Name = "time";
@@ -1668,8 +1668,8 @@ Line_Graph {
     Remarks = Yes;
     Legend_Pos = Top;
     FastDraw = Yes;
-    Position_x = 281;
-    Position_y = 375;
+    Position_x = 308;
+    Position_y = 80;
     Size_x = 977;
     Size_y = 564;
     Axis_Label = "min", "e_total";
@@ -1690,7 +1690,7 @@ Line_Graph {
 // Control Panel Definition Division
 //-------------------------------------------------------
 Control_Panel {
-    Display_Area = 1654, 172, 266, 743;
+    Display_Area = 1334, 157, 266, 743;
     Panel_Item {
         Item_Type = Edit_Box;
         Item_Name = "ƒŠƒ“ƒNƒŒƒ“ƒW(’nˆæ)";
@@ -1866,7 +1866,7 @@ Control_Panel {
         Control_Off_Long = 0;
         Control_Off_Double = 0.0;
         Control_Off_String = "";
-        Toggle_Button_On = No;
+        Toggle_Button_On = Yes;
         Shortcut_Key = "";
     }
 }
@@ -1896,8 +1896,8 @@ Others_Data {
     Console_Size_y = 472;
     Componen_Tree_Position_x = 2;
     Componen_Tree_Position_y = 2;
-    Componen_Tree_Size_x = 255;
-    Componen_Tree_Size_y = 519;
+    Componen_Tree_Size_x = 389;
+    Componen_Tree_Size_y = 400;
     Console_Background_Color = 16777215;
     Console_Foreground_Color = 255;
     Console_DisplayLines_Max = 500;
@@ -1924,7 +1924,7 @@ Network_Info {
 // Window Location Definition Division
 //-------------------------------------------------------
 Window_Rectangle {
-    Window_Name = Main_Window, 0, 0, 1638, 1054;
+    Window_Name = Main_Window, -8, -8, 1616, 886;
     Window_Name = Output_Setting_Window, 160, 205, 480, 290;
     Window_Name = Artisoc_Help_Window, 636, 45, 1190, 667;
 }
