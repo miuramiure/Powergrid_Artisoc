@@ -212,12 +212,12 @@ UNIVERSE {
 //-------------------------------------------------------
 Initial_Value {
     UNIVERSE.ALPHA = 1(0.02);
-    UNIVERSE.BETA = 1(0.025);
+    UNIVERSE.BETA = 1(0.03);
     UNIVERSE.LINK_RANGE_AREA = 1(50.0);
     UNIVERSE.LINK_RANGE_PLAYER = 1(5.0);
     UNIVERSE.COUNT = 1(0);
     UNIVERSE.HOME_NUM = 1(40);
-    UNIVERSE.SOLAR_NUM = 1(0);
+    UNIVERSE.SOLAR_NUM = 1(40);
     UNIVERSE.AREA_NUM = 1(15);
     UNIVERSE.SPACE_WIDTH = 1(0.0);
     UNIVERSE.SPACE_HEIGHT = 1(0.0);
@@ -227,7 +227,7 @@ Initial_Value {
     UNIVERSE.ESTIMATION_MODE = 1(0);
     UNIVERSE.S = 1(0);
     UNIVERSE.DISTRIBUTION_MODE = 1(1);
-    UNIVERSE.BETA_D = 1(0.025);
+    UNIVERSE.BETA_D = 1(1.0);
 }
 
 
@@ -242,7 +242,7 @@ Univ_Init{
 ClearConsoleScreen() //コンソールをクリア
 SetRandomSeed(Universe.RandomSeed)
 
-Universe.nego_step_number=100
+Universe.nego_step_number=200
 
 //-------------------------------------------------------
 //テンポラリー変数，インクリメント変数の宣言
@@ -711,7 +711,7 @@ end if
 if Universe.nego_mode==true then 
 	Universe.mode="交渉モード"
 	Universe.ct_nego=Universe.ct_nego+1
-	if Universe.ct_nego>=Universe.nego_step_number then
+	if Universe.ct_nego>Universe.nego_step_number then
 		Universe.nego_mode=false
 		Universe.s=Universe.s+1
 	end if
@@ -809,9 +809,9 @@ end if
 //-------------------------------------------------------
 #begin_rule UNIVERSE.POWERGRID.TRANS
 Agt_Init{
-My.C1=0.5*Rnd()
-My.C2=1.0*Rnd()
-My.C3=1.0*Rnd()
+My.C1=0.5
+My.C2=1.0
+My.C3=1.0
 //My.C4=0.2
 //My.D1=1.0
 //My.D2=0.5
@@ -840,9 +840,9 @@ if Universe.nego_mode==false then
 	end if
 	
 	if Universe.distribution_mode==true then
-		My.x_i_next=My.x_i - Universe.alpha * (-My.dU - My.from_terminal.lamda+My.to_terminal.lamda )
+		My.x_i_next=My.x_i + Universe.alpha * (My.dU - My.from_terminal.lamda+My.to_terminal.lamda )
 	Else
-		My.x_i_next=My.x_i - Universe.alpha * (-My.dU - My.from_player.lamda+My.to_player.lamda )
+		My.x_i_next=My.x_i + Universe.alpha * (My.dU - My.from_player.lamda+My.to_player.lamda )
 	end if
 
 end if
@@ -866,14 +866,14 @@ end if
 #begin_rule UNIVERSE.POWERGRID.HOME
 Agt_Init{
 My.lamda=0
-My.C1=0.5*Rnd()
-My.C2=1.0*Rnd()
-My.C3=1.0*Rnd()
-My.C4=0.2*Rnd()
+My.C1=0.5
+My.C2=1.0
+My.C3=1.0
+My.C4=0.2
 //My.D1=1.0
 //My.D2=0.5
 //My.D3=1.0
-My.dG=-1
+//My.dG=-1
 My.gamma=Universe.gamma
 My.u_x=0
 My.u_l=0
@@ -896,19 +896,19 @@ My.sv_lamda=My.area.lamda
 //-------------------------------------------------------
 if Universe.nego_mode==false then 
 	//U, dUの計算
-	if My.x_i<My.C1 then
-		My.U=-My.C3*(My.x_i-My.C1)^2+My.C2
-		My.dU=-2*My.C3*(My.x_i-My.C1)
+	if My.x_i>-My.C1 then
+		My.U = -My.C3*(My.x_i+My.C1)^2+My.C2
+		My.dU = -2*My.C3*(My.x_i+My.C1)
 	Else
-		My.U=-My.C4*(My.x_i-My.C1)^2+My.C2
-		My.dU=-2*My.C4*(My.x_i-My.C1)
+		My.U = -My.C4*(My.x_i+My.C1)^2+My.C2
+		My.dU = -2*My.C4*(My.x_i+My.C1)
 	end if
 	
 	//状態量の更新
 	if Universe.distribution_mode==true then
-		My.x_i_next=My.x_i - Universe.alpha * (-My.dU + My.dG * My.lamda )
+		My.x_i_next=My.x_i + Universe.alpha * (My.dU +  My.lamda )
 	Else
-		My.x_i_next=My.x_i - Universe.alpha * (-My.dU + My.dG * My.area.lamda )
+		My.x_i_next=My.x_i + Universe.alpha * (My.dU +  My.area.lamda )
 	end if
 	
 end if
@@ -925,7 +925,7 @@ if Universe.nego_mode==true then
 		else
 			init=My.x_i
 		end if
-		My.theta=My.lamda+Universe.beta_d*init
+		My.theta=My.lamda - Universe.beta_d*init
 		
 	end if
 	
@@ -964,10 +964,10 @@ end if
 #begin_rule UNIVERSE.POWERGRID.SOLAR
 Agt_Init{
 My.lamda=0
-My.C1=0.8*Rnd()
-My.C2=1.0*Rnd()
-My.C3=0.2*Rnd()
-My.C4=1.0*Rnd()
+My.C1=0.8
+My.C2=1.0
+My.C3=0.2
+My.C4=1.0
 //My.D1=1.0
 //My.D2=0.5
 //My.D3=1.0
@@ -994,17 +994,17 @@ Dim init as Double
 if Universe.nego_mode==false then 
 	//U, dUの計算
 	if My.x_i<My.C1 then
-		My.U=-My.C3*(My.x_i-My.C1)^2+My.C2
-		My.dU=-2*My.C3*(My.x_i-My.C1)
+		My.U = -My.C3*(My.x_i-My.C1)^2+My.C2
+		My.dU = -2*My.C3*(My.x_i-My.C1)
 	Else
-		My.U=-My.C4*(My.x_i-My.C1)^2+My.C2
-		My.dU=-2*My.C4*(My.x_i-My.C1)
+		My.U = -My.C4*(My.x_i-My.C1)^2+My.C2
+		My.dU = -2*My.C4*(My.x_i-My.C1)
 	end if
 	
 	if Universe.distribution_mode==true then
-		My.x_i_next=My.x_i - Universe.alpha * (-My.dU + My.dG * My.lamda )
+		My.x_i_next  =My.x_i + Universe.alpha * (My.dU + My.lamda )
 	Else
-		My.x_i_next=My.x_i - Universe.alpha * (-My.dU + My.dG * My.area.lamda )
+		My.x_i_next = My.x_i + Universe.alpha * (My.dU + My.area.lamda )
 	end if
 	
 end if
@@ -1022,7 +1022,7 @@ if Universe.nego_mode==true then
 			init=My.x_i
 		end if
 		
-		My.theta=My.lamda+Universe.beta_d*init
+		My.theta=My.lamda - Universe.beta_d*init
 	end if
 	
 	sigma=0
@@ -1070,19 +1070,20 @@ Dim one as Agt
 //通常モード処理
 //-------------------------------------------------------
 if Universe.nego_mode==false then 
-	My.G_i=0
+	My.G_i = 0
 	For each one in My.members
-		My.G_i=My.G_i+one.dG*one.x_i
+		My.G_i = My.G_i + one.x_i
 	next one
 	For each one in My.trans_out_set
-		My.G_i=My.G_i-one.x_i
+		My.G_i = My.G_i - one.x_i
 	next one
 	For each one in My.trans_in_set
-		My.G_i=My.G_i+one.x_i
+		My.G_i = My.G_i + one.x_i
 	next one
 
 	if Universe.time_min == 0 then
-		My.lamda_next= My.lamda+ Universe.beta * My.G_i
+		My.lamda_next  = My.lamda -
+		 Universe.beta * My.G_i
 	end if
 
 	My.p=My.lamda
@@ -1106,8 +1107,8 @@ Single_Simulation {
     Exec_Order_Random_First_Step_Only = No;
     Random_Seed = 0;
     Redraw_Timing = Step;
-    Redraw_Interval = 1;
-    Garbage_Interval = 1000;
+    Redraw_Interval = 10;
+    Garbage_Interval = 0;
 }
 
 
@@ -1143,8 +1144,8 @@ Map_Output {
     Title = "powergrid";
     Disable = No;
     Background_Color = 255, 255, 255;
-    Position_x = 580;
-    Position_y = 14;
+    Position_x = 509;
+    Position_y = -11;
     Size_x = 1029;
     Size_y = 818;
     Remarks = Yes;
@@ -1155,7 +1156,7 @@ Map_Output {
     Font_Style = 0;
     Font_Color = 0, 0, 0;
     Font_Background_Color = 255, 255, 255;
-    FastDraw = No;
+    FastDraw = Yes;
     Draw_Timing = Simulation_Step;
     Draw_Interval = 50;
     Axis_Label = "", "";
@@ -1328,8 +1329,8 @@ Time_Graph {
     Remarks = Yes;
     Legend_Pos = Top;
     FastDraw = Yes;
-    Position_x = 398;
-    Position_y = 207;
+    Position_x = 498;
+    Position_y = 27;
     Size_x = 878;
     Size_y = 311;
     Axis_Label = "", "";
@@ -1369,10 +1370,10 @@ Time_Graph {
     Remarks = Yes;
     Legend_Pos = Top;
     FastDraw = No;
-    Position_x = 422;
-    Position_y = 74;
-    Size_x = 1036;
-    Size_y = 453;
+    Position_x = 223;
+    Position_y = 103;
+    Size_x = 805;
+    Size_y = 416;
     Axis_Label = "", "";
     Draw_By_JFree_Chart = Yes;
     Scale = 0, 0.0, 1000, 100.0, 100, 10.0;
@@ -1572,8 +1573,8 @@ Numeric_Output {
     Font_Style = 0;
     Font_Color = 0, 0, 0;
     Font_Background_Color = 255, 255, 255;
-    Position_x = 38;
-    Position_y = 535;
+    Position_x = 54;
+    Position_y = 26;
     Size_x = 300;
     Size_y = 249;
     Numeric_Name = "time";
@@ -1632,8 +1633,8 @@ Time_Graph {
     Remarks = Yes;
     Legend_Pos = Top;
     FastDraw = No;
-    Position_x = 169;
-    Position_y = 397;
+    Position_x = 40;
+    Position_y = 137;
     Size_x = 300;
     Size_y = 250;
     Axis_Label = "", "";
@@ -1673,8 +1674,8 @@ Line_Graph {
     Remarks = Yes;
     Legend_Pos = Top;
     FastDraw = Yes;
-    Position_x = 387;
-    Position_y = 139;
+    Position_x = 275;
+    Position_y = 55;
     Size_x = 977;
     Size_y = 564;
     Axis_Label = "min", "e_total";
@@ -1703,22 +1704,32 @@ Time_Graph {
     Font_Background_Color = 255, 255, 255;
     Draw_Timing = Simulation_Step;
     Draw_Interval = 1;
-    Graph_Name = "価格交渉経過(theta)";
-    Title = "価格交渉経過(theta)";
+    Graph_Name = "theta";
+    Title = "theta";
     Disable = No;
     Background_Color = 255, 255, 255;
-    Remarks = No;
+    Remarks = Yes;
     Legend_Pos = Top;
     FastDraw = No;
-    Position_x = 213;
-    Position_y = 522;
-    Size_x = 694;
+    Position_x = 21;
+    Position_y = 207;
+    Size_x = 500;
     Size_y = 300;
     Axis_Label = "", "";
     Draw_By_JFree_Chart = Yes;
     Scale = 0, 0.0, 1000, 100.0, 100, 10.0;
     ScaleAuto = Yes, Yes;
     Output_Group_Name = "";
+    Output {
+        Graph_Element_Name = "HOME0";
+        Line_Color = 255, 0, 0;
+        Line_Width = 2;
+        Marker_Id = 0;
+        Output_Expression = "Universe.powergrid.home(0).theta";
+        Expression_Value_Display = No;
+        Effective_Fraction_Figures = 0;
+        Graph_Element_Color = (0, 255, 0);
+    }
     Output {
         Graph_Element_Name = "HOME1";
         Line_Color = 0, 0, 255;
@@ -1727,11 +1738,11 @@ Time_Graph {
         Output_Expression = "Universe.powergrid.home(1).theta";
         Expression_Value_Display = No;
         Effective_Fraction_Figures = 0;
-        Graph_Element_Color = (0, 255, 0);
+        Graph_Element_Color = (204, 0, 51);
     }
     Output {
         Graph_Element_Name = "HOME2";
-        Line_Color = 0, 255, 0;
+        Line_Color = 0, 255, 255;
         Line_Width = 2;
         Marker_Id = 0;
         Output_Expression = "Universe.powergrid.home(2).theta";
@@ -1797,7 +1808,7 @@ Control_Panel {
         Font_Color = 0, 0, 0;
         Font_Background_Color = 0, 0, 0;
         Var_Name = "Universe.solar_num";
-        Text_Data = "0";
+        Text_Data = "40";
     }
     Panel_Item {
         Item_Type = Edit_Box;
@@ -1836,7 +1847,7 @@ Control_Panel {
         Font_Color = 0, 0, 0;
         Font_Background_Color = 0, 0, 0;
         Var_Name = "Universe.beta";
-        Text_Data = "0.025";
+        Text_Data = "0.03";
     }
     Panel_Item {
         Item_Type = Edit_Box;
@@ -1849,7 +1860,7 @@ Control_Panel {
         Font_Color = 0, 0, 0;
         Font_Background_Color = 0, 0, 0;
         Var_Name = "Universe.beta_d";
-        Text_Data = "0.025";
+        Text_Data = "1.0";
     }
     Panel_Item {
         Item_Type = Edit_Box;
@@ -1946,14 +1957,14 @@ Others_Data {
     Debug_Position_y = 75;
     Debug_Size_x = 400;
     Debug_Size_y = 200;
-    Console_Position_x = 51;
-    Console_Position_y = 38;
+    Console_Position_x = 90;
+    Console_Position_y = 448;
     Console_Size_x = 515;
     Console_Size_y = 472;
     Componen_Tree_Position_x = 2;
     Componen_Tree_Position_y = 2;
-    Componen_Tree_Size_x = 255;
-    Componen_Tree_Size_y = 519;
+    Componen_Tree_Size_x = 389;
+    Componen_Tree_Size_y = 587;
     Console_Background_Color = 16777215;
     Console_Foreground_Color = 255;
     Console_DisplayLines_Max = 500;
@@ -1980,8 +1991,8 @@ Network_Info {
 // Window Location Definition Division
 //-------------------------------------------------------
 Window_Rectangle {
-    Window_Name = Main_Window, 0, 0, 1398, 972;
-    Window_Name = Output_Setting_Window, 459, 341, 480, 290;
+    Window_Name = Main_Window, 0, 0, 1139, 906;
+    Window_Name = Output_Setting_Window, 479, 313, 480, 290;
     Window_Name = Artisoc_Help_Window, 636, 45, 1190, 667;
 }
 
