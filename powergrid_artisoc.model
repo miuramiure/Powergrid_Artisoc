@@ -64,8 +64,9 @@ UNIVERSE {
             Dim v_xl(0, 0) As Double = (0.0);
             Dim a_i(0, 0) As Double = (0.0);
             Dim b_i(0, 0) As Double = (0.0);
-            Dim x_s(0, 0) As Double = ();
-            Dim x_est_0(0, 0) As Double = ();
+            Dim x_s(0, 0) As Double = (0.0);
+            Dim x_est_0(0, 0) As Double = (0.0);
+            Dim x_est(0, 0) As Double = ();
         }
         AgtType home(0, 0)[0] {
             Dim ID(0, 0) As Integer = (0);
@@ -109,8 +110,9 @@ UNIVERSE {
             Dim a_i(0, 0) As Double = (0.0);
             Dim b_i(0, 0) As Double = (0.0);
             Dim sv_lamda(0, 0) As Double = (0.0);
-            Dim x_s(0, 0) As Double = ();
-            Dim x_est_0(0, 0) As Double = ();
+            Dim x_s(0, 0) As Double = (0.0);
+            Dim x_est_0(0, 0) As Double = (0.0);
+            Dim x_est(0, 0) As Double = ();
         }
         AgtType solar(0, 0)[0] {
             Dim ID(0, 0) As Integer = (0);
@@ -153,8 +155,9 @@ UNIVERSE {
             Dim v_xl(0, 0) As Double = (0.0);
             Dim a_i(0, 0) As Double = (0.0);
             Dim b_i(0, 0) As Double = (0.0);
-            Dim x_s(0, 0) As Double = ();
-            Dim x_est_0(0, 0) As Double = ();
+            Dim x_s(0, 0) As Double = (0.0);
+            Dim x_est_0(0, 0) As Double = (0.0);
+            Dim x_est(0, 0) As Double = ();
         }
         AgtType area(0, 0)[0] {
             Dim ID(0, 0) As Integer = (0);
@@ -210,8 +213,8 @@ UNIVERSE {
     Dim s(0, 0) As Integer = (0);
     Dim beta_d(0, 0) As Double = (0.0);
     Dim time_second(0, 0) As Integer = (0);
-    Dim pricing_mode(0, 0) As Integer = ();
-    Dim pricing_mode_text(0, 0) As String = ();
+    Dim pricing_mode(0, 0) As Integer = (0);
+    Dim pricing_mode_text(0, 0) As String = ("");
 }
 
 
@@ -829,7 +832,7 @@ My.b_i=0
 My.lamda=0
 My.x_i=0
 My.x_s=0
-My.x_est_0=0.5
+My.x_est_0=0//0.5
 }
 
 Agt_Step{
@@ -876,6 +879,7 @@ if Universe.nego_mode==true then
 		
 		My.theta=My.lamda - Universe.beta_d*init
 		My.theta_next=My.theta
+		My.x_est=init
 	else
 	
 		sigma=0
@@ -930,7 +934,7 @@ My.b_i=0
 My.lamda=0
 My.x_i=0
 My.x_s=0
-My.x_est_0=-0.5
+My.x_est_0=0//-0.5
 }
 
 Agt_Step{
@@ -995,6 +999,7 @@ if Universe.nego_mode==true then
 		
 		My.theta=My.lamda - Universe.beta_d*init
 		My.theta_next=My.theta
+		My.x_est=init
 				
 	else
 	
@@ -1052,7 +1057,7 @@ My.b_i=0
 My.lamda=0
 My.x_i=0
 My.x_s=0
-My.x_est_0=0.8
+My.x_est_0=0//0.8
 }
 
 Agt_Step{
@@ -1115,6 +1120,7 @@ if Universe.nego_mode==true then
 		
 		My.theta=My.lamda - Universe.beta_d*init
 		My.theta_next=My.theta
+		My.x_est=init
 	else
 	
 		sigma=0
@@ -1809,8 +1815,8 @@ Line_Graph {
     Remarks = Yes;
     Legend_Pos = Top;
     FastDraw = Yes;
-    Position_x = 107;
-    Position_y = 246;
+    Position_x = 297;
+    Position_y = 179;
     Size_x = 977;
     Size_y = 564;
     Axis_Label = "min", "e_total";
@@ -1846,8 +1852,8 @@ Time_Graph {
     Remarks = Yes;
     Legend_Pos = Top;
     FastDraw = No;
-    Position_x = 352;
-    Position_y = 32;
+    Position_x = 196;
+    Position_y = 82;
     Size_x = 1024;
     Size_y = 473;
     Axis_Label = "", "";
@@ -1962,6 +1968,108 @@ Time_Graph {
         Line_Width = 2;
         Marker_Id = 0;
         Output_Expression = "Universe.powergrid.home(2).x_i";
+        Expression_Value_Display = No;
+        Effective_Fraction_Figures = 0;
+        Graph_Element_Color = (0, 0, 255);
+    }
+}
+
+
+//-------------------------------------------------------
+// Time Graph Output Definition Division
+//-------------------------------------------------------
+Time_Graph {
+    Font_Name = "Dialog";
+    Font_Char_Set = 81;
+    Font_Size = 12.0;
+    Font_Style = 0;
+    Font_Color = 0, 0, 0;
+    Font_Background_Color = 255, 255, 255;
+    Draw_Timing = Simulation_Step;
+    Draw_Interval = 1;
+    Graph_Name = "x_est(HOME)";
+    Title = "x_est(HOME)";
+    Disable = No;
+    Background_Color = 255, 255, 255;
+    Remarks = Yes;
+    Legend_Pos = Top;
+    FastDraw = No;
+    Position_x = 100;
+    Position_y = 100;
+    Size_x = 678;
+    Size_y = 340;
+    Axis_Label = "", "";
+    Draw_By_JFree_Chart = Yes;
+    Scale = 0, 0.0, 1000, 100.0, 100, 10.0;
+    ScaleAuto = Yes, Yes;
+    Output_Group_Name = "";
+    Output {
+        Graph_Element_Name = "x_est(HOME0)";
+        Line_Color = 255, 0, 0;
+        Line_Width = 2;
+        Marker_Id = 0;
+        Output_Expression = "Universe.powergrid.home(0).x_est";
+        Expression_Value_Display = No;
+        Effective_Fraction_Figures = 0;
+        Graph_Element_Color = (255, 0, 51);
+    }
+    Output {
+        Graph_Element_Name = "x_i(HOME0)";
+        Line_Color = 0, 0, 255;
+        Line_Width = 2;
+        Marker_Id = 0;
+        Output_Expression = "Universe.powergrid.home(0).x_i";
+        Expression_Value_Display = No;
+        Effective_Fraction_Figures = 0;
+        Graph_Element_Color = (0, 0, 255);
+    }
+}
+
+
+//-------------------------------------------------------
+// Time Graph Output Definition Division
+//-------------------------------------------------------
+Time_Graph {
+    Font_Name = "Dialog";
+    Font_Char_Set = 81;
+    Font_Size = 12.0;
+    Font_Style = 0;
+    Font_Color = 0, 0, 0;
+    Font_Background_Color = 255, 255, 255;
+    Draw_Timing = Simulation_Step;
+    Draw_Interval = 1;
+    Graph_Name = "x_est(SOLAR)";
+    Title = "x_est(SOLAR)";
+    Disable = No;
+    Background_Color = 255, 255, 255;
+    Remarks = Yes;
+    Legend_Pos = Top;
+    FastDraw = No;
+    Position_x = 170;
+    Position_y = 168;
+    Size_x = 849;
+    Size_y = 466;
+    Axis_Label = "", "";
+    Draw_By_JFree_Chart = Yes;
+    Scale = 0, 0.0, 1000, 100.0, 100, 10.0;
+    ScaleAuto = Yes, Yes;
+    Output_Group_Name = "";
+    Output {
+        Graph_Element_Name = "x_est(SOLAR0)";
+        Line_Color = 255, 0, 0;
+        Line_Width = 2;
+        Marker_Id = 0;
+        Output_Expression = "Universe.powergrid.solar(0).x_est";
+        Expression_Value_Display = No;
+        Effective_Fraction_Figures = 0;
+        Graph_Element_Color = (255, 0, 51);
+    }
+    Output {
+        Graph_Element_Name = "x_i(SOLAR0)";
+        Line_Color = 0, 0, 255;
+        Line_Width = 2;
+        Marker_Id = 0;
+        Output_Expression = "Universe.powergrid.solar(0).x_i";
         Expression_Value_Display = No;
         Effective_Fraction_Figures = 0;
         Graph_Element_Color = (0, 0, 255);
@@ -2144,8 +2252,8 @@ Others_Data {
     Console_Size_y = 472;
     Componen_Tree_Position_x = 2;
     Componen_Tree_Position_y = 2;
-    Componen_Tree_Size_x = 248;
-    Componen_Tree_Size_y = 400;
+    Componen_Tree_Size_x = 400;
+    Componen_Tree_Size_y = 662;
     Console_Background_Color = 16777215;
     Console_Foreground_Color = 255;
     Console_DisplayLines_Max = 500;
@@ -2172,8 +2280,8 @@ Network_Info {
 // Window Location Definition Division
 //-------------------------------------------------------
 Window_Rectangle {
-    Window_Name = Main_Window, 0, 0, 1797, 941;
-    Window_Name = Output_Setting_Window, 658, 325, 480, 290;
+    Window_Name = Main_Window, 0, 0, 1174, 850;
+    Window_Name = Output_Setting_Window, 347, 280, 480, 290;
     Window_Name = Artisoc_Help_Window, 81, 204, 1190, 667;
 }
 
