@@ -204,12 +204,11 @@ UNIVERSE {
     Dim ct_nego(0, 0) As Integer = (0);
     Dim mode(0, 0) As String = ("");
     Dim gamma(0, 0) As Double = (0.0);
-    Dim estimation_mode(0, 0) As Boolean = (0);
     Dim s(0, 0) As Integer = (0);
-    Dim distribution_mode(0, 0) As Boolean = (0);
     Dim beta_d(0, 0) As Double = (0.0);
     Dim time_second(0, 0) As Integer = (0);
-    Dim pricing_mode(0, 0) As String = ();
+    Dim pricing_mode(0, 0) As Integer = ();
+    Dim pricing_mode_text(0, 0) As String = ();
 }
 
 
@@ -229,11 +228,10 @@ Initial_Value {
     UNIVERSE.SPACE_HEIGHT = 1(0.0);
     UNIVERSE.RANDOMSEED = 1(13.0);
     UNIVERSE.NEGO_STEP_NUMBER = 1(100);
-    UNIVERSE.GAMMA = 1(0.05);
-    UNIVERSE.ESTIMATION_MODE = 1(0);
+    UNIVERSE.GAMMA = 1(0.04);
     UNIVERSE.S = 1(0);
-    UNIVERSE.DISTRIBUTION_MODE = 1(1);
     UNIVERSE.BETA_D = 1(1.12);
+    UNIVERSE.PRICING_MODE_TEXT = 1("交渉型：零時間");
 }
 
 
@@ -275,12 +273,24 @@ Universe.space_width=GetWidthSpace(Universe.powergrid) //空間の幅(x)
 Universe.space_height=GetHeightSpace(Universe.powergrid) //空間の高さ(y)
 
 //モード表示
-if Universe.distribution_mode==true then
-	PrintLn("交渉型価格調整ON（非スーパバイザ）")
+if Universe.pricing_mode_text=="スーパーバイザ方式" then
+	PrintLn("価格調整：スーパーバイザ方式")
+	Universe.pricing_mode=0
 end if
 
-if Universe.estimation_mode==true then
-	PrintLn("需要供給量予測ON（逐次線形回帰）")
+if Universe.pricing_mode_text=="交渉型：零時間" then
+	PrintLn("価格調整：交渉型（実際のx_(s+1)の値を使って交渉開始）")
+	Universe.pricing_mode=1
+end if
+
+if Universe.pricing_mode_text=="交渉型：予測無" then
+	PrintLn("価格調整：交渉型（x_sの値を使って交渉開始）")
+	Universe.pricing_mode=2
+end if
+
+if Universe.pricing_mode_text=="交渉型：予測有" then
+	PrintLn("価格調整：逐次線形回帰法を用いてx_(s+1)を予測")
+	Universe.pricing_mode=3
 end if
 
 //-------------------------------------------------------
@@ -692,7 +702,7 @@ if Universe.nego_mode==false then
 	Universe.DATA_e_total(Universe.count)=Universe.e_total
 	
 	//negoモードへの切り替え
-	if Universe.time_min == 0 And Universe.time_second == 0 And Universe.step_total !=0 And Universe.distribution_mode==true then
+	if Universe.time_min == 0 And Universe.time_second == 0 And Universe.step_total !=0 And Universe.pricing_mode != 0 then
 		Universe.ct_nego=0
 		Universe.nego_mode=true
 	end if
@@ -743,9 +753,9 @@ Univ_Finish{
 //-------------------------------------------------------
 #begin_rule UNIVERSE.POWERGRID.TRANS
 Agt_Init{
-My.C1=0.5
+My.C1=0.5//+@eRnd(0.2)
 My.C2=1.0
-My.C3=1.0
+My.C3=1.0//+@eRnd(0.2)
 //My.C4=0.2
 //My.D1=1.0
 //My.D2=0.5
@@ -777,7 +787,7 @@ if Universe.nego_mode==false then
 	end if
 	*/
 	
-	if Universe.distribution_mode==true then
+	if Universe.pricing_mode != 0 then
 		My.x_i_next=My.x_i + Universe.alpha * (My.dU - My.from_terminal.lamda+My.to_terminal.lamda )
 	Else
 		My.x_i_next=My.x_i + Universe.alpha * (My.dU - My.from_player.lamda+My.to_player.lamda )
@@ -836,10 +846,14 @@ end if
 if Universe.nego_mode==true then 
 
 	if Universe.ct_nego==1 then
- 		if Universe.estimation_mode==true then
+	
+		if Universe.pricing_mode == 1 then
+			init=My.x_i
+		elseif Universe.pricing_mode == 2 then
+			init=My.x_s
+		elseif Universe.pricing_mode == 3 then
 			init=My.a_i*My.lamda+My.b_i
 		else
-			init=My.x_s
 		end if
 		
 		My.theta=My.lamda - Universe.beta_d*init
@@ -853,7 +867,7 @@ if Universe.nego_mode==true then
 		My.theta_next=My.theta-Universe.gamma*sigma	
 		
 		if Universe.ct_nego==Universe.nego_step_number then
-			if Universe.estimation_mode==true then
+			if Universe.pricing_mode == 3 then
 				My.u_x=My.u_x+My.x_i
 				My.u_l=My.u_l+My.lamda
 				My.v_l=My.v_l+My.lamda^2
@@ -880,9 +894,9 @@ end if
 //-------------------------------------------------------
 #begin_rule UNIVERSE.POWERGRID.HOME
 Agt_Init{
-My.C1=0.5
+My.C1=0.5//+@eRnd(0.2)
 My.C2=1.0
-My.C3=1.0
+My.C3=1.0//+@eRnd(0.2)
 My.C4=0.2
 //My.D1=1.0
 //My.D2=0.5
@@ -922,7 +936,7 @@ if Universe.nego_mode==false then
 	//end if
 	
 	//状態量の更新
-	if Universe.distribution_mode==true then
+	if Universe.pricing_mode != 0 then
 		My.x_i_next=My.x_i + Universe.alpha * (My.dU +  My.lamda )
 	Else
 		My.x_i_next=My.x_i + Universe.alpha * (My.dU +  My.area.lamda )
@@ -937,11 +951,15 @@ if Universe.nego_mode==true then
 
 	if Universe.ct_nego==1 then
 
-		if Universe.estimation_mode==true then
+		if Universe.pricing_mode == 1 then
+			init=My.x_i
+		elseif Universe.pricing_mode == 2 then
+			init=My.x_s
+		elseif Universe.pricing_mode == 3 then
 			init=My.a_i*My.lamda+My.b_i
 		else
-			init=My.x_s
 		end if
+		
 		My.theta=My.lamda - Universe.beta_d*init
 		My.theta_next=My.theta
 				
@@ -954,7 +972,7 @@ if Universe.nego_mode==true then
 		My.theta_next=My.theta-Universe.gamma*sigma	
 	
 		if Universe.ct_nego==Universe.nego_step_number then
-			if Universe.estimation_mode==true then
+			if Universe.pricing_mode == 3 then
 				My.u_x=My.u_x+My.x_i
 				My.u_l=My.u_l+My.lamda
 				My.v_l=My.v_l+My.lamda^2
@@ -983,9 +1001,9 @@ end if
 //-------------------------------------------------------
 #begin_rule UNIVERSE.POWERGRID.SOLAR
 Agt_Init{
-My.C1=0.8
+My.C1=0.8//+@eRnd(0.2)
 My.C2=1.0
-My.C3=0.2
+My.C3=0.2//+@eRnd(0.1)
 My.C4=1.0
 //My.D1=1.0
 //My.D2=0.5
@@ -1023,7 +1041,7 @@ if Universe.nego_mode==false then
 		//My.dU = -2*My.C4*(My.x_i-My.C1)
 	//end if
 	
-	if Universe.distribution_mode==true then
+	if Universe.pricing_mode != 0 then
 		My.x_i_next  =My.x_i + Universe.alpha * (My.dU + My.lamda )
 	Else
 		My.x_i_next = My.x_i + Universe.alpha * (My.dU + My.area.lamda )
@@ -1038,10 +1056,13 @@ if Universe.nego_mode==true then
 
 	if Universe.ct_nego==1 then
 	
-		if Universe.estimation_mode==true then
+		if Universe.pricing_mode == 1 then
+			init=My.x_i
+		elseif Universe.pricing_mode == 2 then
+			init=My.x_s
+		elseif Universe.pricing_mode == 3 then
 			init=My.a_i*My.lamda+My.b_i
 		else
-			init=My.x_s
 		end if
 		
 		My.theta=My.lamda - Universe.beta_d*init
@@ -1055,7 +1076,7 @@ if Universe.nego_mode==true then
 		My.theta_next=My.theta-Universe.gamma*sigma	
 	
 		if Universe.ct_nego==Universe.nego_step_number then
-			if Universe.estimation_mode==true then
+			if Universe.pricing_mode == 3 then
 				My.u_x=My.u_x+My.x_i
 				My.u_l=My.u_l+My.lamda
 				My.v_l=My.v_l+My.lamda^2
@@ -1131,10 +1152,10 @@ if Universe.ct_nego==1 then
 	//DuplicateAgtSet(temp_agtset ,My.members) 
 	
 	For each one in My.members
-		My.init_ave = My.init_ave+one.lamda-Universe.beta_d*one.x_s
+		My.init_ave = My.init_ave+one.lamda-Universe.beta_d*one.x_i
 	next one
 	For each one in My.trans_terminals
-		My.init_ave = My.init_ave+one.lamda-Universe.beta_d*one.x_s
+		My.init_ave = My.init_ave+one.lamda-Universe.beta_d*one.x_i
 	next one
 
 	My.init_ave=My.init_ave/(CountAgtSet(My.members)+CountAgtSet(My.trans_terminals))
@@ -1198,8 +1219,8 @@ Map_Output {
     Title = "powergrid";
     Disable = No;
     Background_Color = 255, 255, 255;
-    Position_x = 1127;
-    Position_y = 336;
+    Position_x = 596;
+    Position_y = 197;
     Size_x = 913;
     Size_y = 718;
     Remarks = Yes;
@@ -1734,8 +1755,8 @@ Line_Graph {
     Remarks = Yes;
     Legend_Pos = Top;
     FastDraw = Yes;
-    Position_x = 25;
-    Position_y = 193;
+    Position_x = 107;
+    Position_y = 246;
     Size_x = 977;
     Size_y = 564;
     Axis_Label = "min", "e_total";
@@ -1771,8 +1792,8 @@ Time_Graph {
     Remarks = Yes;
     Legend_Pos = Top;
     FastDraw = No;
-    Position_x = 217;
-    Position_y = 168;
+    Position_x = 352;
+    Position_y = 32;
     Size_x = 1024;
     Size_y = 473;
     Axis_Label = "", "";
@@ -1821,7 +1842,7 @@ Time_Graph {
         Graph_Element_Color = (204, 51, 255);
     }
     Output {
-        Graph_Element_Name = "init";
+        Graph_Element_Name = "init_ave";
         Line_Color = 0, 0, 255;
         Line_Width = 2;
         Marker_Id = 0;
@@ -1829,16 +1850,6 @@ Time_Graph {
         Expression_Value_Display = No;
         Effective_Fraction_Figures = 0;
         Graph_Element_Color = (0, 0, 0);
-    }
-    Output {
-        Graph_Element_Name = "Beta*G_i";
-        Line_Color = 255, 0, 0;
-        Line_Width = 2;
-        Marker_Id = 0;
-        Output_Expression = "Universe.powergrid.area(0).G_i*Universe.beta";
-        Expression_Value_Display = No;
-        Effective_Fraction_Figures = 0;
-        Graph_Element_Color = (204, 102, 0);
     }
 }
 
@@ -1908,7 +1919,7 @@ Time_Graph {
 // Control Panel Definition Division
 //-------------------------------------------------------
 Control_Panel {
-    Display_Area = 1654, 172, 266, 743;
+    Display_Area = 1502, 124, 266, 743;
     Panel_Item {
         Item_Type = Edit_Box;
         Item_Name = "リンクレンジ(地域)";
@@ -2002,7 +2013,7 @@ Control_Panel {
     }
     Panel_Item {
         Item_Type = Edit_Box;
-        Item_Name = "β_d";
+        Item_Name = "c_i";
         Display_Area = 0, 0, 0, 0;
         Font_Name = "";
         Font_Char_Set = 0;
@@ -2024,7 +2035,7 @@ Control_Panel {
         Font_Color = 0, 0, 0;
         Font_Background_Color = 0, 0, 0;
         Var_Name = "Universe.gamma";
-        Text_Data = "0.05";
+        Text_Data = "0.04";
     }
     Panel_Item {
         Item_Type = Edit_Box;
@@ -2040,8 +2051,8 @@ Control_Panel {
         Text_Data = "13.0";
     }
     Panel_Item {
-        Item_Type = Toggle;
-        Item_Name = "交渉型価格調整ON";
+        Item_Type = Drop_Down_List;
+        Item_Name = "価格調整モード";
         Display_Area = 0, 0, 0, 0;
         Font_Name = "";
         Font_Char_Set = 0;
@@ -2049,43 +2060,8 @@ Control_Panel {
         Font_Style = 0;
         Font_Color = 0, 0, 0;
         Font_Background_Color = 0, 0, 0;
-        Var_Name = "Universe.distribution_mode";
-        Control_On = Yes;
-        Control_On_Int = 0;
-        Control_On_Long = 0;
-        Control_On_Double = 0.0;
-        Control_On_String = "";
-        Control_Off = No;
-        Control_Off_Int = 0;
-        Control_Off_Long = 0;
-        Control_Off_Double = 0.0;
-        Control_Off_String = "";
-        Toggle_Button_On = Yes;
-        Shortcut_Key = "";
-    }
-    Panel_Item {
-        Item_Type = Toggle;
-        Item_Name = "需要供給量予測ON";
-        Display_Area = 0, 0, 0, 0;
-        Font_Name = "";
-        Font_Char_Set = 0;
-        Font_Size = 0.0;
-        Font_Style = 0;
-        Font_Color = 0, 0, 0;
-        Font_Background_Color = 0, 0, 0;
-        Var_Name = "Universe.estimation_mode";
-        Control_On = Yes;
-        Control_On_Int = 0;
-        Control_On_Long = 0;
-        Control_On_Double = 0.0;
-        Control_On_String = "";
-        Control_Off = No;
-        Control_Off_Int = 0;
-        Control_Off_Long = 0;
-        Control_Off_Double = 0.0;
-        Control_Off_String = "";
-        Toggle_Button_On = No;
-        Shortcut_Key = "";
+        Var_Name = "Universe.pricing_mode_text";
+        Drop_Down_List_Value = "スーパーバイザ方式","スーパーバイザ方式","交渉型：零時間","交渉型：零時間","交渉型：予測無","交渉型：予測無","交渉型：予測有","交渉型：予測有";
     }
 }
 
@@ -2143,7 +2119,7 @@ Network_Info {
 //-------------------------------------------------------
 Window_Rectangle {
     Window_Name = Main_Window, 0, 0, 1797, 941;
-    Window_Name = Output_Setting_Window, 380, 325, 480, 290;
+    Window_Name = Output_Setting_Window, 658, 325, 480, 290;
     Window_Name = Artisoc_Help_Window, 81, 204, 1190, 667;
 }
 
