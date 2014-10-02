@@ -64,6 +64,7 @@ UNIVERSE {
             Dim v_xl(0, 0) As Double = (0.0);
             Dim a_i(0, 0) As Double = (0.0);
             Dim b_i(0, 0) As Double = (0.0);
+            Dim x_s(0, 0) As Double = ();
         }
         AgtType home(0, 0)[0] {
             Dim ID(0, 0) As Integer = (0);
@@ -107,6 +108,7 @@ UNIVERSE {
             Dim a_i(0, 0) As Double = (0.0);
             Dim b_i(0, 0) As Double = (0.0);
             Dim sv_lamda(0, 0) As Double = (0.0);
+            Dim x_s(0, 0) As Double = ();
         }
         AgtType solar(0, 0)[0] {
             Dim ID(0, 0) As Integer = (0);
@@ -149,6 +151,7 @@ UNIVERSE {
             Dim v_xl(0, 0) As Double = (0.0);
             Dim a_i(0, 0) As Double = (0.0);
             Dim b_i(0, 0) As Double = (0.0);
+            Dim x_s(0, 0) As Double = ();
         }
         AgtType area(0, 0)[0] {
             Dim ID(0, 0) As Integer = (0);
@@ -206,6 +209,7 @@ UNIVERSE {
     Dim distribution_mode(0, 0) As Boolean = (0);
     Dim beta_d(0, 0) As Double = (0.0);
     Dim time_second(0, 0) As Integer = (0);
+    Dim pricing_mode(0, 0) As String = ();
 }
 
 
@@ -214,7 +218,7 @@ UNIVERSE {
 //-------------------------------------------------------
 Initial_Value {
     UNIVERSE.ALPHA = 1(0.06);
-    UNIVERSE.BETA = 1(0.02);
+    UNIVERSE.BETA = 1(0.04);
     UNIVERSE.LINK_RANGE_AREA = 1(50.0);
     UNIVERSE.LINK_RANGE_PLAYER = 1(6.0);
     UNIVERSE.COUNT = 1(0);
@@ -226,10 +230,10 @@ Initial_Value {
     UNIVERSE.RANDOMSEED = 1(13.0);
     UNIVERSE.NEGO_STEP_NUMBER = 1(100);
     UNIVERSE.GAMMA = 1(0.05);
-    UNIVERSE.ESTIMATION_MODE = 1(1);
+    UNIVERSE.ESTIMATION_MODE = 1(0);
     UNIVERSE.S = 1(0);
     UNIVERSE.DISTRIBUTION_MODE = 1(1);
-    UNIVERSE.BETA_D = 1(0.56);
+    UNIVERSE.BETA_D = 1(1.12);
 }
 
 
@@ -756,6 +760,9 @@ Agt_Step{
 //-------------------------------------------------------
 if Universe.nego_mode==false then 
 	//U, dUÇÃåvéZ
+		My.U = -My.C3*(My.x_i-My.C1)^2+My.C2
+		My.dU = -2*My.C3*(My.x_i-My.C1)
+	/*
 	if -My.C1<=My.x_i And My.x_i<My.C1 then
 		My.U=My.C2
 		My.dU=0
@@ -768,6 +775,7 @@ if Universe.nego_mode==false then
 			My.dU=-2*My.C3*(My.x_i-My.C1)
 		end if
 	end if
+	*/
 	
 	if Universe.distribution_mode==true then
 		My.x_i_next=My.x_i + Universe.alpha * (My.dU - My.from_terminal.lamda+My.to_terminal.lamda )
@@ -796,6 +804,8 @@ end if
 #begin_rule UNIVERSE.POWERGRID.TRANS_TERMINAL
 Agt_Init{
 My.lamda=0
+My.x_i=0
+My.x_s=0
 My.gamma=Universe.gamma
 My.u_x=0
 My.u_l=0
@@ -803,6 +813,9 @@ My.v_l=0
 My.v_xl=0
 My.a_i=0
 My.b_i=0.5
+My.lamda=0
+My.x_i=0
+My.x_s=0.5
 }
 
 Agt_Step{
@@ -826,7 +839,7 @@ if Universe.nego_mode==true then
  		if Universe.estimation_mode==true then
 			init=My.a_i*My.lamda+My.b_i
 		else
-			init=My.x_i
+			init=My.x_s
 		end if
 		
 		My.theta=My.lamda - Universe.beta_d*init
@@ -851,6 +864,7 @@ if Universe.nego_mode==true then
 				end if
 			end if	
 			My.lamda=My.theta_next
+			My.x_s=My.x_i
 		end if
 	end if	
 	
@@ -866,7 +880,6 @@ end if
 //-------------------------------------------------------
 #begin_rule UNIVERSE.POWERGRID.HOME
 Agt_Init{
-My.lamda=0
 My.C1=0.5
 My.C2=1.0
 My.C3=1.0
@@ -882,6 +895,9 @@ My.v_l=0
 My.v_xl=0
 My.a_i=0
 My.b_i=0.01
+My.lamda=0
+My.x_i=0
+My.x_s=-My.C1
 }
 
 Agt_Step{
@@ -897,13 +913,13 @@ My.sv_lamda=My.area.lamda
 //-------------------------------------------------------
 if Universe.nego_mode==false then 
 	//U, dUÇÃåvéZ
-	if My.x_i>-My.C1 then
+	//if My.x_i>-My.C1 then
 		My.U = -My.C3*(My.x_i+My.C1)^2+My.C2
 		My.dU = -2*My.C3*(My.x_i+My.C1)
-	Else
-		My.U = -My.C4*(My.x_i+My.C1)^2+My.C2
-		My.dU = -2*My.C4*(My.x_i+My.C1)
-	end if
+	//Else
+		//My.U = -My.C4*(My.x_i+My.C1)^2+My.C2
+		//My.dU = -2*My.C4*(My.x_i+My.C1)
+	//end if
 	
 	//èÛë‘ó ÇÃçXêV
 	if Universe.distribution_mode==true then
@@ -920,14 +936,15 @@ end if
 if Universe.nego_mode==true then 
 
 	if Universe.ct_nego==1 then
-		
+
 		if Universe.estimation_mode==true then
 			init=My.a_i*My.lamda+My.b_i
 		else
-			init=My.x_i
+			init=My.x_s
 		end if
 		My.theta=My.lamda - Universe.beta_d*init
 		My.theta_next=My.theta
+				
 	else
 	
 		sigma=0
@@ -948,6 +965,7 @@ if Universe.nego_mode==true then
 				end if
 			end if	
 			My.lamda=My.theta_next
+			My.x_s=My.x_i
 		end if
 	end if	
 	
@@ -965,7 +983,6 @@ end if
 //-------------------------------------------------------
 #begin_rule UNIVERSE.POWERGRID.SOLAR
 Agt_Init{
-My.lamda=0
 My.C1=0.8
 My.C2=1.0
 My.C3=0.2
@@ -981,6 +998,9 @@ My.v_l=0
 My.v_xl=0
 My.a_i=0
 My.b_i=0.01
+My.lamda=0
+My.x_i=0
+My.x_s=My.C1
 }
 
 Agt_Step{
@@ -995,13 +1015,13 @@ Dim init as Double
 //-------------------------------------------------------
 if Universe.nego_mode==false then 
 	//U, dUÇÃåvéZ
-	if My.x_i<My.C1 then
+	//if My.x_i<My.C1 then
 		My.U = -My.C3*(My.x_i-My.C1)^2+My.C2
 		My.dU = -2*My.C3*(My.x_i-My.C1)
-	Else
-		My.U = -My.C4*(My.x_i-My.C1)^2+My.C2
-		My.dU = -2*My.C4*(My.x_i-My.C1)
-	end if
+	//Else
+		//My.U = -My.C4*(My.x_i-My.C1)^2+My.C2
+		//My.dU = -2*My.C4*(My.x_i-My.C1)
+	//end if
 	
 	if Universe.distribution_mode==true then
 		My.x_i_next  =My.x_i + Universe.alpha * (My.dU + My.lamda )
@@ -1021,7 +1041,7 @@ if Universe.nego_mode==true then
 		if Universe.estimation_mode==true then
 			init=My.a_i*My.lamda+My.b_i
 		else
-			init=My.x_i
+			init=My.x_s
 		end if
 		
 		My.theta=My.lamda - Universe.beta_d*init
@@ -1046,6 +1066,7 @@ if Universe.nego_mode==true then
 				end if
 			end if	
 			My.lamda=My.theta_next
+			My.x_s=My.x_i
 		end if	
 	end if
 end if
@@ -1110,10 +1131,10 @@ if Universe.ct_nego==1 then
 	//DuplicateAgtSet(temp_agtset ,My.members) 
 	
 	For each one in My.members
-		My.init_ave = My.init_ave+one.lamda-Universe.beta_d*one.x_i
+		My.init_ave = My.init_ave+one.lamda-Universe.beta_d*one.x_s
 	next one
 	For each one in My.trans_terminals
-		My.init_ave = My.init_ave+one.lamda-Universe.beta_d*one.x_i
+		My.init_ave = My.init_ave+one.lamda-Universe.beta_d*one.x_s
 	next one
 
 	My.init_ave=My.init_ave/(CountAgtSet(My.members)+CountAgtSet(My.trans_terminals))
@@ -1140,7 +1161,7 @@ Single_Simulation {
     Exec_Order_Random_First_Step_Only = No;
     Random_Seed = 0;
     Redraw_Timing = Step;
-    Redraw_Interval = 1;
+    Redraw_Interval = 10;
     Garbage_Interval = 0;
 }
 
@@ -1177,8 +1198,8 @@ Map_Output {
     Title = "powergrid";
     Disable = No;
     Background_Color = 255, 255, 255;
-    Position_x = 570;
-    Position_y = 20;
+    Position_x = 1127;
+    Position_y = 336;
     Size_x = 913;
     Size_y = 718;
     Remarks = Yes;
@@ -1606,8 +1627,8 @@ Numeric_Output {
     Font_Style = 0;
     Font_Color = 0, 0, 0;
     Font_Background_Color = 255, 255, 255;
-    Position_x = 10;
-    Position_y = 44;
+    Position_x = 128;
+    Position_y = 56;
     Size_x = 300;
     Size_y = 249;
     Numeric_Name = "time";
@@ -1713,8 +1734,8 @@ Line_Graph {
     Remarks = Yes;
     Legend_Pos = Top;
     FastDraw = Yes;
-    Position_x = 513;
-    Position_y = 96;
+    Position_x = 25;
+    Position_y = 193;
     Size_x = 977;
     Size_y = 564;
     Axis_Label = "min", "e_total";
@@ -1750,8 +1771,8 @@ Time_Graph {
     Remarks = Yes;
     Legend_Pos = Top;
     FastDraw = No;
-    Position_x = 32;
-    Position_y = 203;
+    Position_x = 217;
+    Position_y = 168;
     Size_x = 1024;
     Size_y = 473;
     Axis_Label = "", "";
@@ -1977,7 +1998,7 @@ Control_Panel {
         Font_Color = 0, 0, 0;
         Font_Background_Color = 0, 0, 0;
         Var_Name = "Universe.beta";
-        Text_Data = "0.02";
+        Text_Data = "0.04";
     }
     Panel_Item {
         Item_Type = Edit_Box;
@@ -1990,7 +2011,7 @@ Control_Panel {
         Font_Color = 0, 0, 0;
         Font_Background_Color = 0, 0, 0;
         Var_Name = "Universe.beta_d";
-        Text_Data = "0.56";
+        Text_Data = "1.12";
     }
     Panel_Item {
         Item_Type = Edit_Box;
@@ -2063,7 +2084,7 @@ Control_Panel {
         Control_Off_Long = 0;
         Control_Off_Double = 0.0;
         Control_Off_String = "";
-        Toggle_Button_On = Yes;
+        Toggle_Button_On = No;
         Shortcut_Key = "";
     }
 }
@@ -2121,9 +2142,9 @@ Network_Info {
 // Window Location Definition Division
 //-------------------------------------------------------
 Window_Rectangle {
-    Window_Name = Main_Window, 0, 0, 1483, 914;
-    Window_Name = Output_Setting_Window, 284, 312, 480, 290;
-    Window_Name = Artisoc_Help_Window, 655, 93, 1190, 667;
+    Window_Name = Main_Window, 0, 0, 1797, 941;
+    Window_Name = Output_Setting_Window, 380, 325, 480, 290;
+    Window_Name = Artisoc_Help_Window, 81, 204, 1190, 667;
 }
 
 
