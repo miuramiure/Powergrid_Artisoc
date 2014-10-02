@@ -65,6 +65,7 @@ UNIVERSE {
             Dim a_i(0, 0) As Double = (0.0);
             Dim b_i(0, 0) As Double = (0.0);
             Dim x_s(0, 0) As Double = ();
+            Dim x_est_0(0, 0) As Double = ();
         }
         AgtType home(0, 0)[0] {
             Dim ID(0, 0) As Integer = (0);
@@ -109,6 +110,7 @@ UNIVERSE {
             Dim b_i(0, 0) As Double = (0.0);
             Dim sv_lamda(0, 0) As Double = (0.0);
             Dim x_s(0, 0) As Double = ();
+            Dim x_est_0(0, 0) As Double = ();
         }
         AgtType solar(0, 0)[0] {
             Dim ID(0, 0) As Integer = (0);
@@ -152,6 +154,7 @@ UNIVERSE {
             Dim a_i(0, 0) As Double = (0.0);
             Dim b_i(0, 0) As Double = (0.0);
             Dim x_s(0, 0) As Double = ();
+            Dim x_est_0(0, 0) As Double = ();
         }
         AgtType area(0, 0)[0] {
             Dim ID(0, 0) As Integer = (0);
@@ -231,7 +234,7 @@ Initial_Value {
     UNIVERSE.GAMMA = 1(0.04);
     UNIVERSE.S = 1(0);
     UNIVERSE.BETA_D = 1(1.12);
-    UNIVERSE.PRICING_MODE_TEXT = 1("åè¬å^ÅFóÎéûä‘");
+    UNIVERSE.PRICING_MODE_TEXT = 1("åè¬å^ÅFó\ë™óL");
 }
 
 
@@ -822,10 +825,11 @@ My.u_l=0
 My.v_l=0
 My.v_xl=0
 My.a_i=0
-My.b_i=0.5
+My.b_i=0
 My.lamda=0
 My.x_i=0
-My.x_s=0.5
+My.x_s=0
+My.x_est_0=0.5
 }
 
 Agt_Step{
@@ -850,9 +854,23 @@ if Universe.nego_mode==true then
 		if Universe.pricing_mode == 1 then
 			init=My.x_i
 		elseif Universe.pricing_mode == 2 then
-			init=My.x_s
+		
+			if Universe.s==0 then
+				init=My.x_est_0
+			else
+				init=My.x_s
+			end if
+			
 		elseif Universe.pricing_mode == 3 then
-			init=My.a_i*My.lamda+My.b_i
+			
+			if Universe.s==0 then
+				init=My.x_est_0
+			elseif Universe.s==1 then
+				init=My.x_s
+			else
+				init=My.a_i*My.lamda+My.b_i
+			end if
+					
 		else
 		end if
 		
@@ -872,9 +890,9 @@ if Universe.nego_mode==true then
 				My.u_l=My.u_l+My.lamda
 				My.v_l=My.v_l+My.lamda^2
 				My.v_xl=My.v_xl+My.x_i*My.lamda
-				if Universe.s*My.v_l-My.u_l^2 != 0 then
-					My.a_i=(Universe.s*My.v_xl-My.u_x*My.u_l)/(Universe.s*My.v_l-My.u_l^2)
-					My.b_i=(My.v_l*My.u_x-My.v_xl*My.u_l)/(Universe.s*My.v_l-My.u_l^2)
+				if (Universe.s+1)*My.v_l-My.u_l^2 != 0 then
+					My.a_i=((Universe.s+1)*My.v_xl-My.u_x*My.u_l)/((Universe.s+1)*My.v_l-My.u_l^2)
+					My.b_i=(My.v_l*My.u_x-My.v_xl*My.u_l)/((Universe.s+1)*My.v_l-My.u_l^2)
 				end if
 			end if	
 			My.lamda=My.theta_next
@@ -908,10 +926,11 @@ My.u_l=0
 My.v_l=0
 My.v_xl=0
 My.a_i=0
-My.b_i=0.01
+My.b_i=0
 My.lamda=0
 My.x_i=0
-My.x_s=-My.C1
+My.x_s=0
+My.x_est_0=-0.5
 }
 
 Agt_Step{
@@ -954,9 +973,23 @@ if Universe.nego_mode==true then
 		if Universe.pricing_mode == 1 then
 			init=My.x_i
 		elseif Universe.pricing_mode == 2 then
-			init=My.x_s
+		
+			if Universe.s==0 then
+				init=My.x_est_0
+			else
+				init=My.x_s
+			end if
+			
 		elseif Universe.pricing_mode == 3 then
-			init=My.a_i*My.lamda+My.b_i
+			
+			if Universe.s==0 then
+				init=My.x_est_0
+			elseif Universe.s==1 then
+				init=My.x_s
+			else
+				init=My.a_i*My.lamda+My.b_i
+			end if
+	
 		else
 		end if
 		
@@ -977,9 +1010,9 @@ if Universe.nego_mode==true then
 				My.u_l=My.u_l+My.lamda
 				My.v_l=My.v_l+My.lamda^2
 				My.v_xl=My.v_xl+My.x_i*My.lamda
-				if Universe.s*My.v_l-My.u_l^2 != 0 then
-					My.a_i=(Universe.s*My.v_xl-My.u_x*My.u_l)/(Universe.s*My.v_l-My.u_l^2)
-					My.b_i=(My.v_l*My.u_x-My.v_xl*My.u_l)/(Universe.s*My.v_l-My.u_l^2)
+				if (Universe.s+1)*My.v_l-My.u_l^2 != 0 then
+					My.a_i=((Universe.s+1)*My.v_xl-My.u_x*My.u_l)/((Universe.s+1)*My.v_l-My.u_l^2)
+					My.b_i=(My.v_l*My.u_x-My.v_xl*My.u_l)/((Universe.s+1)*My.v_l-My.u_l^2)
 				end if
 			end if	
 			My.lamda=My.theta_next
@@ -1015,10 +1048,11 @@ My.u_l=0
 My.v_l=0
 My.v_xl=0
 My.a_i=0
-My.b_i=0.01
+My.b_i=0
 My.lamda=0
 My.x_i=0
-My.x_s=My.C1
+My.x_s=0
+My.x_est_0=0.8
 }
 
 Agt_Step{
@@ -1059,9 +1093,23 @@ if Universe.nego_mode==true then
 		if Universe.pricing_mode == 1 then
 			init=My.x_i
 		elseif Universe.pricing_mode == 2 then
-			init=My.x_s
+		
+			if Universe.s==0 then
+				init=My.x_est_0
+			else
+				init=My.x_s
+			end if
+			
 		elseif Universe.pricing_mode == 3 then
-			init=My.a_i*My.lamda+My.b_i
+			
+			if Universe.s==0 then
+				init=My.x_est_0
+			elseif Universe.s==1 then
+				init=My.x_s
+			else
+				init=My.a_i*My.lamda+My.b_i
+			end if
+	
 		else
 		end if
 		
@@ -1081,9 +1129,9 @@ if Universe.nego_mode==true then
 				My.u_l=My.u_l+My.lamda
 				My.v_l=My.v_l+My.lamda^2
 				My.v_xl=My.v_xl+My.x_i*My.lamda
-				if Universe.s*My.v_l-My.u_l^2 != 0 then
-					My.a_i=(Universe.s*My.v_xl-My.u_x*My.u_l)/(Universe.s*My.v_l-My.u_l^2)
-					My.b_i=(My.v_l*My.u_x-My.v_xl*My.u_l)/(Universe.s*My.v_l-My.u_l^2)
+				if (Universe.s+1)*My.v_l-My.u_l^2 != 0 then
+					My.a_i=((Universe.s+1)*My.v_xl-My.u_x*My.u_l)/((Universe.s+1)*My.v_l-My.u_l^2)
+					My.b_i=(My.v_l*My.u_x-My.v_xl*My.u_l)/((Universe.s+1)*My.v_l-My.u_l^2)
 				end if
 			end if	
 			My.lamda=My.theta_next
@@ -1648,8 +1696,8 @@ Numeric_Output {
     Font_Style = 0;
     Font_Color = 0, 0, 0;
     Font_Background_Color = 255, 255, 255;
-    Position_x = 128;
-    Position_y = 56;
+    Position_x = 108;
+    Position_y = 24;
     Size_x = 300;
     Size_y = 249;
     Numeric_Name = "time";
@@ -1691,6 +1739,12 @@ Numeric_Output {
         Figures = 0;
         Format_Id = 0;
         Output_Expression = "Universe.ct_nego";
+    }
+    OUTPUT {
+        Output_Element_Name = "s";
+        Figures = 0;
+        Format_Id = 0;
+        Output_Expression = "Universe.s";
     }
 }
 
