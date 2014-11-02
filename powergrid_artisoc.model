@@ -212,10 +212,13 @@ UNIVERSE {
     Dim gamma(0, 0) As Double = (0.0);
     Dim s(0, 0) As Integer = (0);
     Dim beta_d(0, 0) As Double = (0.0);
+<<<<<<< HEAD
+=======
     Dim time_second(0, 0) As Integer = (0);
     Dim pricing_mode(0, 0) As Integer = (0);
     Dim pricing_mode_text(0, 0) As String = ("");
     Dim output(0, 0)[10] As Double = (10*0.0);
+>>>>>>> origin/第57回自動制御連合発表用
 }
 
 
@@ -223,6 +226,16 @@ UNIVERSE {
 // Agent Variable Initial Data
 //-------------------------------------------------------
 Initial_Value {
+<<<<<<< HEAD
+    UNIVERSE.ALPHA = 1(0.02);
+    UNIVERSE.BETA = 1(0.03);
+    UNIVERSE.LINK_RANGE_AREA = 1(50.0);
+    UNIVERSE.LINK_RANGE_PLAYER = 1(5.0);
+    UNIVERSE.COUNT = 1(0);
+    UNIVERSE.HOME_NUM = 1(40);
+    UNIVERSE.SOLAR_NUM = 1(40);
+    UNIVERSE.AREA_NUM = 1(15);
+=======
     UNIVERSE.ALPHA = 1(0.06);
     UNIVERSE.BETA = 1(0.04);
     UNIVERSE.LINK_RANGE_AREA = 1(50.0);
@@ -231,14 +244,20 @@ Initial_Value {
     UNIVERSE.HOME_NUM = 1(12);
     UNIVERSE.SOLAR_NUM = 1(12);
     UNIVERSE.AREA_NUM = 1(17);
+>>>>>>> origin/第57回自動制御連合発表用
     UNIVERSE.SPACE_WIDTH = 1(0.0);
     UNIVERSE.SPACE_HEIGHT = 1(0.0);
     UNIVERSE.RANDOMSEED = 1(13.0);
     UNIVERSE.NEGO_STEP_NUMBER = 1(100);
     UNIVERSE.GAMMA = 1(0.04);
     UNIVERSE.S = 1(0);
+<<<<<<< HEAD
+    UNIVERSE.DISTRIBUTION_MODE = 1(1);
+    UNIVERSE.BETA_D = 1(1.0);
+=======
     UNIVERSE.BETA_D = 1(1.12);
     UNIVERSE.PRICING_MODE_TEXT = 1("���^�F�뎞��");
+>>>>>>> origin/第57回自動制御連合発表用
 }
 
 
@@ -253,7 +272,7 @@ Univ_Init{
 ClearConsoleScreen() //�R���\�[�����N���A
 SetRandomSeed(Universe.RandomSeed)
 
-Universe.nego_step_number=100
+Universe.nego_step_number=200
 
 //-------------------------------------------------------
 //�e���|�����[�ϐ��C�C���N�������g�ϐ��̐錾
@@ -632,7 +651,6 @@ Dim area_agtset as AgtSet
 Dim player_agtset as AgtSet //home,solar,trans
 Dim negotiator_agtset as AgtSet //home,solar,trans_terminal
 Dim count_min as Integer
-Dim count_second as Integer
 Dim max_agt as Agt
 Dim min_agt as Agt
 Dim i as Integer
@@ -640,8 +658,7 @@ Dim i as Integer
 //-------------------------------------------------------
 //�p�����[�^�̐ݒ聕���O����
 //-------------------------------------------------------
-count_min=Universe.count*0.25 //���U���Ԃ𒲐�
-count_second=Universe.count*15
+count_min=Universe.count*1 //���U���Ԃ𒲐�
 
 ClearAgtset (area_agtset)
 ClearAgtset(player_agtset)
@@ -700,7 +717,6 @@ if Universe.nego_mode==false then
 	//-------------------------------------------------------
 	//�����̎擾
 	//-------------------------------------------------------
-	Universe.time_second=count_second mod 60
 	Universe.time_min=count_min mod 60
 	Universe.time_day=count_min \ 1440
 	Universe.time_hour=(count_min mod 1440) \ 60
@@ -710,7 +726,11 @@ if Universe.nego_mode==false then
 	Universe.DATA_e_total(Universe.count)=Universe.e_total
 	
 	//nego���[�h�ւ̐؂�ւ�
+<<<<<<< HEAD
+	if Universe.time_min==0 And Universe.count !=0 And Universe.distribution_mode==true then
+=======
 	if Universe.time_min == 0 And Universe.time_second == 0 And Universe.step_total !=0 And Universe.pricing_mode != 0 then
+>>>>>>> origin/第57回自動制御連合発表用
 		Universe.ct_nego=0
 		Universe.nego_mode=true
 	end if
@@ -1712,9 +1732,15 @@ Numeric_Output {
     Font_Style = 0;
     Font_Color = 0, 0, 0;
     Font_Background_Color = 255, 255, 255;
+<<<<<<< HEAD
+    Position_x = 54;
+    Position_y = 26;
+    Size_x = 300;
+=======
     Position_x = 2;
     Position_y = 210;
     Size_x = 305;
+>>>>>>> origin/第57回自動制御連合発表用
     Size_y = 249;
     Numeric_Name = "time";
     Title = "time";
@@ -1737,12 +1763,6 @@ Numeric_Output {
         Figures = 0;
         Format_Id = 0;
         Output_Expression = "Universe.time_min";
-    }
-    OUTPUT {
-        Output_Element_Name = "�b";
-        Figures = 0;
-        Format_Id = 0;
-        Output_Expression = "Universe.time_second";
     }
     OUTPUT {
         Output_Element_Name = "���[�h";
@@ -1825,10 +1845,17 @@ Line_Graph {
     Remarks = Yes;
     Legend_Pos = Top;
     FastDraw = Yes;
+<<<<<<< HEAD
+    Position_x = 275;
+    Position_y = 55;
+    Size_x = 977;
+    Size_y = 564;
+=======
     Position_x = 210;
     Position_y = 301;
     Size_x = 1070;
     Size_y = 705;
+>>>>>>> origin/第57回自動制御連合発表用
     Axis_Label = "min", "e_total";
     Output_Group_Name = "";
     Output {
@@ -1862,10 +1889,17 @@ Time_Graph {
     Remarks = Yes;
     Legend_Pos = Top;
     FastDraw = No;
+<<<<<<< HEAD
+    Position_x = 21;
+    Position_y = 207;
+    Size_x = 500;
+    Size_y = 300;
+=======
     Position_x = -240;
     Position_y = 264;
     Size_x = 944;
     Size_y = 640;
+>>>>>>> origin/第57回自動制御連合発表用
     Axis_Label = "", "";
     Draw_By_JFree_Chart = Yes;
     Scale = 0, 0.0, 1000, 100.0, 100, 10.0;
@@ -1901,6 +1935,8 @@ Time_Graph {
         Effective_Fraction_Figures = 0;
         Graph_Element_Color = (0, 0, 255);
     }
+<<<<<<< HEAD
+=======
     Output {
         Graph_Element_Name = "�n��0(SV�������i)";
         Line_Color = 0, 255, 255;
@@ -1972,6 +2008,7 @@ Time_Graph {
         Effective_Fraction_Figures = 0;
         Graph_Element_Color = (0, 0, 255);
     }
+>>>>>>> origin/第57回自動制御連合発表用
 }
 
 
@@ -2237,7 +2274,11 @@ Control_Panel {
         Font_Color = 0, 0, 0;
         Font_Background_Color = 0, 0, 0;
         Var_Name = "Universe.link_range_player";
+<<<<<<< HEAD
+        Text_Data = "5.0";
+=======
         Text_Data = "6.0";
+>>>>>>> origin/第57回自動制御連合発表用
     }
     Panel_Item {
         Item_Type = Edit_Box;
@@ -2263,7 +2304,11 @@ Control_Panel {
         Font_Color = 0, 0, 0;
         Font_Background_Color = 0, 0, 0;
         Var_Name = "Universe.solar_num";
+<<<<<<< HEAD
+        Text_Data = "40";
+=======
         Text_Data = "12";
+>>>>>>> origin/第57回自動制御連合発表用
     }
     Panel_Item {
         Item_Type = Edit_Box;
@@ -2276,7 +2321,11 @@ Control_Panel {
         Font_Color = 0, 0, 0;
         Font_Background_Color = 0, 0, 0;
         Var_Name = "Universe.home_num";
+<<<<<<< HEAD
+        Text_Data = "40";
+=======
         Text_Data = "12";
+>>>>>>> origin/第57回自動制御連合発表用
     }
     Panel_Item {
         Item_Type = Edit_Box;
@@ -2289,7 +2338,11 @@ Control_Panel {
         Font_Color = 0, 0, 0;
         Font_Background_Color = 0, 0, 0;
         Var_Name = "Universe.alpha";
+<<<<<<< HEAD
+        Text_Data = "0.02";
+=======
         Text_Data = "0.06";
+>>>>>>> origin/第57回自動制御連合発表用
     }
     Panel_Item {
         Item_Type = Edit_Box;
@@ -2302,7 +2355,11 @@ Control_Panel {
         Font_Color = 0, 0, 0;
         Font_Background_Color = 0, 0, 0;
         Var_Name = "Universe.beta";
+<<<<<<< HEAD
+        Text_Data = "0.03";
+=======
         Text_Data = "0.04";
+>>>>>>> origin/第57回自動制御連合発表用
     }
     Panel_Item {
         Item_Type = Edit_Box;
@@ -2315,7 +2372,11 @@ Control_Panel {
         Font_Color = 0, 0, 0;
         Font_Background_Color = 0, 0, 0;
         Var_Name = "Universe.beta_d";
+<<<<<<< HEAD
+        Text_Data = "1.0";
+=======
         Text_Data = "1.12";
+>>>>>>> origin/第57回自動制御連合発表用
     }
     Panel_Item {
         Item_Type = Edit_Box;
@@ -2411,9 +2472,15 @@ Network_Info {
 // Window Location Definition Division
 //-------------------------------------------------------
 Window_Rectangle {
+<<<<<<< HEAD
+    Window_Name = Main_Window, 0, 0, 1139, 906;
+    Window_Name = Output_Setting_Window, 479, 313, 480, 290;
+    Window_Name = Artisoc_Help_Window, 636, 45, 1190, 667;
+=======
     Window_Name = Main_Window, -8, -8, 1040, 754;
     Window_Name = Output_Setting_Window, 280, 232, 480, 290;
     Window_Name = Artisoc_Help_Window, 81, 204, 1190, 667;
+>>>>>>> origin/第57回自動制御連合発表用
 }
 
 
