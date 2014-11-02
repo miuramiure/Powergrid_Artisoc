@@ -215,11 +215,7 @@ UNIVERSE {
     Dim time_second(0, 0) As Integer = (0);
     Dim pricing_mode(0, 0) As Integer = (0);
     Dim pricing_mode_text(0, 0) As String = ("");
-<<<<<<< HEAD
-    Dim output(0, 0)[20] As Double = ();
-=======
-    Dim ct_nego_total(0, 0)[150][150][1] As Integer = (22500*0);
->>>>>>> origin/隨ｬ57蝗櫁�ｪ蜍募宛蠕｡騾｣蜷育匱陦ｨ逕ｨ
+    Dim output(0, 0)[10] As Double = (10*0.0);
 }
 
 
@@ -232,9 +228,9 @@ Initial_Value {
     UNIVERSE.LINK_RANGE_AREA = 1(50.0);
     UNIVERSE.LINK_RANGE_PLAYER = 1(6.0);
     UNIVERSE.COUNT = 1(0);
-    UNIVERSE.HOME_NUM = 1(20);
-    UNIVERSE.SOLAR_NUM = 1(20);
-    UNIVERSE.AREA_NUM = 1(15);
+    UNIVERSE.HOME_NUM = 1(12);
+    UNIVERSE.SOLAR_NUM = 1(12);
+    UNIVERSE.AREA_NUM = 1(17);
     UNIVERSE.SPACE_WIDTH = 1(0.0);
     UNIVERSE.SPACE_HEIGHT = 1(0.0);
     UNIVERSE.RANDOMSEED = 1(13.0);
@@ -243,7 +239,6 @@ Initial_Value {
     UNIVERSE.S = 1(0);
     UNIVERSE.BETA_D = 1(1.12);
     UNIVERSE.PRICING_MODE_TEXT = 1("交渉型：零時間");
-    UNIVERSE.OUTPUT = 1(20*0.0);
 }
 
 
@@ -254,18 +249,6 @@ Initial_Value {
 include "lib_miura.inc" //基礎的な独自関数をインポート
 
 Univ_Init{
-//-------------------------------------------------------
-//ファイルを開いてラベルを書き込む
-//-------------------------------------------------------
-OpenFile("C:\temp\data_G.txt", 1, 2) 
-WriteLnFile(1, "Step" & "," & "time_min" & "," & "area0" &  ","  & "area1"  &  ","  & "area2"  &  ","  & "area3"  &  ","  & "area4"  &  ","  & "area5"  &  ","  & "area6"  &  ","  & "area7"  &  ","  & "area8"  &  ","  & "area9"  &  ","  & "area10"  &  ","  & "area11"  &  ","  & "area12"  &  ","  & "area13"  &  ","  & "area14" ) 
-CloseFile(1)
-OpenFile("C:\temp\data_G.txt", 1, 3) 
-
-OpenFile("C:\temp\data_theta.txt", 2, 2) 
-WriteLnFile(2, "Step" & "," & "time_min" & "," & "home0" &  ","  & "home1"  &  ","  & "home2"  &  ","  & "home3"  &  ","  & "home4"  &  ","  & "home5"  &  ","  & "home6"  &  ","  & "home7"  &  ","  & "home8"  &  ","  & "home9"  &  ","  & "home10"  &  ","  & "home11"  &  "," & "solar0" &  ","  & "solar1"  &  ","  & "solar2"  &  ","  & "solar3"  &  ","  & "solar4"  &  ","  & "solar5"  &  ","  & "solar6"  &  ","  & "solar7"  &  ","  & "solar8"  &  ","  & "solar9"  &  ","  & "solar10"  &  ","  & "solar11" ) 
-CloseFile(2)
-OpenFile("C:\temp\data_theta.txt", 2, 3) 
 
 ClearConsoleScreen() //コンソールをクリア
 SetRandomSeed(Universe.RandomSeed)
@@ -726,8 +709,6 @@ if Universe.nego_mode==false then
 	Universe.DATA_time_min(Universe.count)=count_min
 	Universe.DATA_e_total(Universe.count)=Universe.e_total
 	
-	WriteLnFile(1, CStr(Universe.count)  & "," & CStr(count_min) & "," & CStr(Universe.powergrid.area(0).G_i) &  ","  & CStr(Universe.powergrid.area(1).G_i)  &  ","  & CStr(Universe.powergrid.area(2).G_i)  &  ","  & CStr(Universe.powergrid.area(3).G_i)  &  ","  & CStr(Universe.powergrid.area(4).G_i)  &  ","  & CStr(Universe.powergrid.area(5).G_i)  &  ","  & CStr(Universe.powergrid.area(6).G_i)  &  ","  & CStr(Universe.powergrid.area(7).G_i)  &  ","  & CStr(Universe.powergrid.area(8).G_i)  &  ","  & CStr(Universe.powergrid.area(9).G_i)  &  ","  & CStr(Universe.powergrid.area(10).G_i)  &  ","  & CStr(Universe.powergrid.area(11).G_i)  &  ","  & CStr(Universe.powergrid.area(12).G_i)  &  ","  & CStr(Universe.powergrid.area(13).G_i)  &  ","  & CStr(Universe.powergrid.area(14).G_i) ) 
-	
 	//negoモードへの切り替え
 	if Universe.time_min == 0 And Universe.time_second == 0 And Universe.step_total !=0 And Universe.pricing_mode != 0 then
 		Universe.ct_nego=0
@@ -756,26 +737,17 @@ if Universe.nego_mode==true then
 	For each one in negotiator_agtset
 		one.theta=one.theta_next
 	next one
-<<<<<<< HEAD
 	
-	For i = 0 To 9 Step 1　　　　           
+	For i = 0 To 4 Step 1　　　　           
    		Universe.output(i)=Universe.powergrid.home(i).theta
 	Next i
-	For i = 0 To 9 Step 1　　　　           
-   		Universe.output(i+10)=Universe.powergrid.solar(i).theta
+	For i = 0 To 4 Step 1　　　　           
+   		Universe.output(i+5)=Universe.powergrid.solar(i).theta
 	Next i
-	
-end if
-=======
-
-	WriteLnFile(2, CStr(Universe.ct_nego_total)  & "," & CStr(Universe.ct_nego_total/(Universe.nego_step_number+1)*60) & "," & CStr(Universe.powergrid.home(0).theta) &  ","  & CStr(Universe.powergrid.home(1).theta)  &  ","  & CStr(Universe.powergrid.home(2).theta)  &  ","  & CStr(Universe.powergrid.home(3).theta)  &  ","  & CStr(Universe.powergrid.home(4).theta)  &  ","  & CStr(Universe.powergrid.home(5).theta)  &  ","  & CStr(Universe.powergrid.home(6).theta)  &  ","  & CStr(Universe.powergrid.home(7).theta)  &  ","  & CStr(Universe.powergrid.home(8).theta)  &  ","  & CStr(Universe.powergrid.home(9).theta)  &  ","  & CStr(Universe.powergrid.home(10).theta)  &  ","  & CStr(Universe.powergrid.home(11).theta)  & "," & CStr(Universe.powergrid.solar(0).theta) &  ","  & CStr(Universe.powergrid.solar(1).theta)  &  ","  & CStr(Universe.powergrid.solar(2).theta)  &  ","  & CStr(Universe.powergrid.solar(3).theta)  &  ","  & CStr(Universe.powergrid.solar(4).theta)  &  ","  & CStr(Universe.powergrid.solar(5).theta)  &  ","  & CStr(Universe.powergrid.solar(6).theta)  &  ","  & CStr(Universe.powergrid.solar(7).theta)  &  ","  & CStr(Universe.powergrid.solar(8).theta)  &  ","  & CStr(Universe.powergrid.solar(9).theta)  &  ","  & CStr(Universe.powergrid.solar(10).theta)  &  ","  & CStr(Universe.powergrid.solar(11).theta) ) 
-
-
->>>>>>> origin/隨ｬ57蝗櫁�ｪ蜍募宛蠕｡騾｣蜷育匱陦ｨ逕ｨ
-
-	Universe.ct_nego_total=Universe.ct_nego_total+1
 
 end if
+
+
 
 Universe.step_total=Universe.step_total+1
 
@@ -785,9 +757,6 @@ Universe.step_total=Universe.step_total+1
 
 
 Univ_Finish{
-CloseFile(1)　
-CloseFile(2)
-
 
 }
 #end_rule UNIVERSE
@@ -1029,7 +998,7 @@ if Universe.nego_mode==true then
 			
 			if Universe.s==0 then
 				init=My.x_est_0
-			elseif Universe.s==1 Or Universe.s==2 then
+			elseif Universe.s==1 then
 				init=My.x_s
 			else
 				init=My.a_i*My.lamda+My.b_i
@@ -1277,7 +1246,7 @@ Single_Simulation {
     Exec_Order_Random_First_Step_Only = No;
     Random_Seed = 0;
     Redraw_Timing = Step;
-    Redraw_Interval = 50;
+    Redraw_Interval = 10;
     Garbage_Interval = 0;
 }
 
@@ -1314,17 +1283,10 @@ Map_Output {
     Title = "powergrid";
     Disable = No;
     Background_Color = 255, 255, 255;
-<<<<<<< HEAD
-    Position_x = 328;
-    Position_y = 15;
-    Size_x = 928;
+    Position_x = 366;
+    Position_y = 21;
+    Size_x = 779;
     Size_y = 629;
-=======
-    Position_x = 594;
-    Position_y = 6;
-    Size_x = 913;
-    Size_y = 718;
->>>>>>> origin/隨ｬ57蝗櫁�ｪ蜍募宛蠕｡騾｣蜷育匱陦ｨ逕ｨ
     Remarks = Yes;
     Legend_Pos = Top;
     Font_Name = "Dialog";
@@ -1547,8 +1509,8 @@ Time_Graph {
     Remarks = Yes;
     Legend_Pos = Top;
     FastDraw = No;
-    Position_x = 894;
-    Position_y = -4;
+    Position_x = 1095;
+    Position_y = 2;
     Size_x = 576;
     Size_y = 535;
     Axis_Label = "", "";
@@ -1556,16 +1518,6 @@ Time_Graph {
     Scale = 0, 0.0, 1000, 100.0, 100, 10.0;
     ScaleAuto = Yes, Yes;
     Output_Group_Name = "";
-    Output {
-        Graph_Element_Name = "地域0";
-        Line_Color = 255, 0, 0;
-        Line_Width = 2;
-        Marker_Id = 0;
-        Output_Expression = "Universe.powergrid.area(0).p";
-        Expression_Value_Display = No;
-        Effective_Fraction_Figures = 0;
-        Graph_Element_Color = (204, 255, 0);
-    }
     Output {
         Graph_Element_Name = "地域1";
         Line_Color = 255, 0, 0;
@@ -1607,54 +1559,14 @@ Time_Graph {
         Graph_Element_Color = (153, 0, 51);
     }
     Output {
-        Graph_Element_Name = "地域5";
-        Line_Color = 0, 0, 255;
-        Line_Width = 2;
-        Marker_Id = 0;
-        Output_Expression = "Universe.powergrid.area(5).p";
-        Expression_Value_Display = No;
-        Effective_Fraction_Figures = 0;
-        Graph_Element_Color = (255, 51, 51);
-    }
-    Output {
-        Graph_Element_Name = "地域6";
+        Graph_Element_Name = "地域0";
         Line_Color = 255, 0, 0;
         Line_Width = 2;
         Marker_Id = 0;
-        Output_Expression = "Universe.powergrid.area(6).p";
+        Output_Expression = "Universe.powergrid.area(0).p";
         Expression_Value_Display = No;
         Effective_Fraction_Figures = 0;
-        Graph_Element_Color = (255, 0, 0);
-    }
-    Output {
-        Graph_Element_Name = "地域7";
-        Line_Color = 0, 0, 255;
-        Line_Width = 2;
-        Marker_Id = 0;
-        Output_Expression = "Universe.powergrid.area(7).p";
-        Expression_Value_Display = No;
-        Effective_Fraction_Figures = 0;
-        Graph_Element_Color = (255, 204, 0);
-    }
-    Output {
-        Graph_Element_Name = "地域8";
-        Line_Color = 0, 255, 0;
-        Line_Width = 2;
-        Marker_Id = 0;
-        Output_Expression = "Universe.powergrid.area(8).p";
-        Expression_Value_Display = No;
-        Effective_Fraction_Figures = 0;
-        Graph_Element_Color = (0, 204, 204);
-    }
-    Output {
-        Graph_Element_Name = "地域9";
-        Line_Color = 255, 0, 255;
-        Line_Width = 2;
-        Marker_Id = 0;
-        Output_Expression = "Universe.powergrid.area(9).p";
-        Expression_Value_Display = No;
-        Effective_Fraction_Figures = 0;
-        Graph_Element_Color = (51, 0, 51);
+        Graph_Element_Color = (204, 255, 0);
     }
 }
 
@@ -1872,8 +1784,8 @@ Time_Graph {
     Remarks = Yes;
     Legend_Pos = Top;
     FastDraw = No;
-    Position_x = 884;
-    Position_y = 452;
+    Position_x = 1098;
+    Position_y = 540;
     Size_x = 571;
     Size_y = 394;
     Axis_Label = "", "";
@@ -1913,17 +1825,10 @@ Line_Graph {
     Remarks = Yes;
     Legend_Pos = Top;
     FastDraw = Yes;
-<<<<<<< HEAD
-    Position_x = 11;
-    Position_y = 452;
-    Size_x = 783;
-    Size_y = 394;
-=======
-    Position_x = 160;
-    Position_y = 129;
-    Size_x = 977;
-    Size_y = 564;
->>>>>>> origin/隨ｬ57蝗櫁�ｪ蜍募宛蠕｡騾｣蜷育匱陦ｨ逕ｨ
+    Position_x = 210;
+    Position_y = 301;
+    Size_x = 1070;
+    Size_y = 705;
     Axis_Label = "min", "e_total";
     Output_Group_Name = "";
     Output {
@@ -1957,15 +1862,10 @@ Time_Graph {
     Remarks = Yes;
     Legend_Pos = Top;
     FastDraw = No;
-<<<<<<< HEAD
-    Position_x = 45;
-    Position_y = 280;
-=======
-    Position_x = 335;
-    Position_y = 363;
->>>>>>> origin/隨ｬ57蝗櫁�ｪ蜍募宛蠕｡騾｣蜷育匱陦ｨ逕ｨ
-    Size_x = 1024;
-    Size_y = 473;
+    Position_x = -240;
+    Position_y = 264;
+    Size_x = 944;
+    Size_y = 640;
     Axis_Label = "", "";
     Draw_By_JFree_Chart = Yes;
     Scale = 0, 0.0, 1000, 100.0, 100, 10.0;
@@ -2010,16 +1910,6 @@ Time_Graph {
         Expression_Value_Display = No;
         Effective_Fraction_Figures = 0;
         Graph_Element_Color = (204, 51, 255);
-    }
-    Output {
-        Graph_Element_Name = "init_ave";
-        Line_Color = 0, 0, 255;
-        Line_Width = 2;
-        Marker_Id = 0;
-        Output_Expression = "Universe.powergrid.area(0).init_ave";
-        Expression_Value_Display = No;
-        Effective_Fraction_Figures = 0;
-        Graph_Element_Color = (0, 0, 0);
     }
 }
 
@@ -2104,8 +1994,8 @@ Time_Graph {
     Remarks = Yes;
     Legend_Pos = Top;
     FastDraw = No;
-    Position_x = 545;
-    Position_y = 345;
+    Position_x = 100;
+    Position_y = 100;
     Size_x = 678;
     Size_y = 340;
     Axis_Label = "", "";
@@ -2155,13 +2045,8 @@ Time_Graph {
     Remarks = Yes;
     Legend_Pos = Top;
     FastDraw = No;
-<<<<<<< HEAD
-    Position_x = 224;
-    Position_y = 369;
-=======
-    Position_x = 740;
-    Position_y = 131;
->>>>>>> origin/隨ｬ57蝗櫁�ｪ蜍募宛蠕｡騾｣蜷育匱陦ｨ逕ｨ
+    Position_x = -118;
+    Position_y = 183;
     Size_x = 849;
     Size_y = 466;
     Axis_Label = "", "";
@@ -2193,33 +2078,6 @@ Time_Graph {
 
 
 //-------------------------------------------------------
-<<<<<<< HEAD
-=======
-// File Output Definition Division
-//-------------------------------------------------------
-File_Output {
-    File_Output_Name = "test";
-    File_Name = "test.txt";
-    Field_Delimiter = ",";
-    Output_Step = 1;
-    Disable = No;
-    OUTPUT {
-        Output_Element_Name = "G_Area0";
-        Figures = 3;
-        Format_Id = 0;
-        Output_Expression = "Universe.powergrid.area(0).G_i";
-    }
-    OUTPUT {
-        Output_Element_Name = "Area1";
-        Figures = 0;
-        Format_Id = 0;
-        Output_Expression = "Universe.powergrid.area(1).G_i";
-    }
-}
-
-
-//-------------------------------------------------------
->>>>>>> origin/隨ｬ57蝗櫁�ｪ蜍募宛蠕｡騾｣蜷育匱陦ｨ逕ｨ
 // Time Graph Output Definition Division
 //-------------------------------------------------------
 Time_Graph {
@@ -2231,58 +2089,35 @@ Time_Graph {
     Font_Background_Color = 255, 255, 255;
     Draw_Timing = Simulation_Step;
     Draw_Interval = 1;
-<<<<<<< HEAD
     Graph_Name = "価格交渉";
     Title = "価格交渉";
-    Disable = No;
-    Background_Color = 255, 255, 255;
-    Remarks = No;
-    Legend_Pos = Top;
-    FastDraw = No;
-    Position_x = 144;
-    Position_y = 112;
-    Size_x = 500;
-    Size_y = 300;
-    Axis_Label = "min", "theta";
-=======
-    Graph_Name = "地域ごとの停滞量";
-    Title = "地域ごとの停滞量";
     Disable = No;
     Background_Color = 255, 255, 255;
     Remarks = Yes;
     Legend_Pos = Top;
     FastDraw = No;
-    Position_x = -50;
-    Position_y = 240;
+    Position_x = 25;
+    Position_y = 61;
     Size_x = 500;
     Size_y = 300;
-    Axis_Label = "", "";
->>>>>>> origin/隨ｬ57蝗櫁�ｪ蜍募宛蠕｡騾｣蜷育匱陦ｨ逕ｨ
+    Axis_Label = "theta", "min";
     Draw_By_JFree_Chart = Yes;
     Scale = 0, 0.0, 1000, 100.0, 100, 10.0;
     ScaleAuto = Yes, Yes;
     Output_Group_Name = "";
     Output {
         Graph_Element_Name = "0";
-<<<<<<< HEAD
-        Line_Color = 255, 255, 0;
+        Line_Color = 255, 0, 0;
         Line_Width = 1;
         Marker_Id = 0;
         Output_Expression = "Universe.output(0)";
-=======
-        Line_Color = 255, 0, 0;
-        Line_Width = 2;
-        Marker_Id = 0;
-        Output_Expression = "Universe.powergrid.area(0).G_i";
->>>>>>> origin/隨ｬ57蝗櫁�ｪ蜍募宛蠕｡騾｣蜷育匱陦ｨ逕ｨ
         Expression_Value_Display = No;
         Effective_Fraction_Figures = 0;
-        Graph_Element_Color = (0, 255, 0);
+        Graph_Element_Color = (0, 204, 51);
     }
     Output {
         Graph_Element_Name = "1";
-<<<<<<< HEAD
-        Line_Color = 128, 128, 128;
+        Line_Color = 0, 0, 255;
         Line_Width = 1;
         Marker_Id = 0;
         Output_Expression = "Universe.output(1)";
@@ -2292,7 +2127,7 @@ Time_Graph {
     }
     Output {
         Graph_Element_Name = "2";
-        Line_Color = 0, 0, 255;
+        Line_Color = 0, 255, 0;
         Line_Width = 1;
         Marker_Id = 0;
         Output_Expression = "Universe.output(2)";
@@ -2302,222 +2137,73 @@ Time_Graph {
     }
     Output {
         Graph_Element_Name = "3";
-        Line_Color = 0, 255, 0;
+        Line_Color = 255, 0, 255;
         Line_Width = 1;
         Marker_Id = 0;
         Output_Expression = "Universe.output(3)";
         Expression_Value_Display = No;
         Effective_Fraction_Figures = 0;
-        Graph_Element_Color = (204, 153, 0);
+        Graph_Element_Color = (153, 0, 0);
     }
     Output {
         Graph_Element_Name = "4";
-        Line_Color = 255, 0, 255;
+        Line_Color = 0, 255, 255;
         Line_Width = 1;
         Marker_Id = 0;
         Output_Expression = "Universe.output(4)";
         Expression_Value_Display = No;
         Effective_Fraction_Figures = 0;
-        Graph_Element_Color = (204, 102, 0);
+        Graph_Element_Color = (153, 0, 102);
     }
     Output {
         Graph_Element_Name = "5";
-        Line_Color = 0, 255, 255;
+        Line_Color = 255, 255, 0;
         Line_Width = 1;
         Marker_Id = 0;
         Output_Expression = "Universe.output(5)";
         Expression_Value_Display = No;
         Effective_Fraction_Figures = 0;
-        Graph_Element_Color = (204, 0, 0);
+        Graph_Element_Color = (51, 0, 153);
     }
     Output {
         Graph_Element_Name = "6";
-        Line_Color = 255, 255, 0;
+        Line_Color = 128, 128, 128;
         Line_Width = 1;
         Marker_Id = 0;
         Output_Expression = "Universe.output(6)";
         Expression_Value_Display = No;
         Effective_Fraction_Figures = 0;
-        Graph_Element_Color = (204, 0, 102);
+        Graph_Element_Color = (0, 0, 153);
     }
     Output {
         Graph_Element_Name = "7";
-        Line_Color = 128, 128, 128;
+        Line_Color = 255, 0, 0;
         Line_Width = 1;
         Marker_Id = 0;
         Output_Expression = "Universe.output(7)";
         Expression_Value_Display = No;
         Effective_Fraction_Figures = 0;
-        Graph_Element_Color = (204, 0, 204);
+        Graph_Element_Color = (0, 102, 102);
     }
     Output {
         Graph_Element_Name = "8";
-        Line_Color = 255, 0, 0;
+        Line_Color = 0, 0, 255;
         Line_Width = 1;
         Marker_Id = 0;
         Output_Expression = "Universe.output(8)";
         Expression_Value_Display = No;
         Effective_Fraction_Figures = 0;
-        Graph_Element_Color = (153, 0, 204);
+        Graph_Element_Color = (255, 51, 51);
     }
     Output {
         Graph_Element_Name = "9";
-        Line_Color = 0, 0, 255;
+        Line_Color = 0, 255, 0;
         Line_Width = 1;
         Marker_Id = 0;
         Output_Expression = "Universe.output(9)";
         Expression_Value_Display = No;
         Effective_Fraction_Figures = 0;
-        Graph_Element_Color = (0, 0, 153);
-    }
-    Output {
-        Graph_Element_Name = "10";
-        Line_Color = 0, 255, 0;
-        Line_Width = 1;
-        Marker_Id = 0;
-        Output_Expression = "Universe.output(10)";
-        Expression_Value_Display = No;
-        Effective_Fraction_Figures = 0;
-        Graph_Element_Color = (0, 102, 153);
-    }
-    Output {
-        Graph_Element_Name = "11";
-        Line_Color = 255, 0, 255;
-        Line_Width = 1;
-        Marker_Id = 0;
-        Output_Expression = "Universe.output(11)";
-        Expression_Value_Display = No;
-        Effective_Fraction_Figures = 0;
-        Graph_Element_Color = (0, 153, 153);
-    }
-    Output {
-        Graph_Element_Name = "12";
-        Line_Color = 0, 255, 255;
-        Line_Width = 1;
-        Marker_Id = 0;
-        Output_Expression = "Universe.output(12)";
-        Expression_Value_Display = No;
-        Effective_Fraction_Figures = 0;
-        Graph_Element_Color = (0, 153, 153);
-    }
-    Output {
-        Graph_Element_Name = "13";
-        Line_Color = 255, 255, 0;
-        Line_Width = 1;
-        Marker_Id = 0;
-        Output_Expression = "Universe.output(13)";
-        Expression_Value_Display = No;
-        Effective_Fraction_Figures = 0;
-        Graph_Element_Color = (102, 153, 255);
-    }
-    Output {
-        Graph_Element_Name = "14";
-        Line_Color = 255, 0, 0;
-        Line_Width = 1;
-        Marker_Id = 0;
-        Output_Expression = "Universe.output(14)";
-        Expression_Value_Display = No;
-        Effective_Fraction_Figures = 0;
-        Graph_Element_Color = (153, 153, 255);
-    }
-    Output {
-        Graph_Element_Name = "15";
-        Line_Color = 0, 255, 0;
-        Line_Width = 1;
-        Marker_Id = 0;
-        Output_Expression = "Universe.output(15)";
-        Expression_Value_Display = No;
-        Effective_Fraction_Figures = 0;
-        Graph_Element_Color = (153, 102, 255);
-    }
-    Output {
-        Graph_Element_Name = "16";
-        Line_Color = 0, 255, 255;
-        Line_Width = 1;
-        Marker_Id = 0;
-        Output_Expression = "Universe.output(16)";
-        Expression_Value_Display = No;
-        Effective_Fraction_Figures = 0;
-        Graph_Element_Color = (204, 102, 255);
-    }
-    Output {
-        Graph_Element_Name = "17";
-        Line_Color = 255, 255, 0;
-        Line_Width = 1;
-        Marker_Id = 0;
-        Output_Expression = "Universe.output(17)";
-        Expression_Value_Display = No;
-        Effective_Fraction_Figures = 0;
-        Graph_Element_Color = (255, 102, 102);
-    }
-    Output {
-        Graph_Element_Name = "18";
-        Line_Color = 128, 128, 128;
-        Line_Width = 1;
-        Marker_Id = 0;
-        Output_Expression = "Universe.output(18)";
-        Expression_Value_Display = No;
-        Effective_Fraction_Figures = 0;
-        Graph_Element_Color = (255, 51, 51);
-    }
-    Output {
-        Graph_Element_Name = "19";
-        Line_Color = 255, 0, 0;
-        Line_Width = 1;
-        Marker_Id = 0;
-        Output_Expression = "Universe.output(19)";
-        Expression_Value_Display = No;
-        Effective_Fraction_Figures = 0;
-        Graph_Element_Color = (51, 51, 0);
-=======
-        Line_Color = 0, 0, 255;
-        Line_Width = 2;
-        Marker_Id = 0;
-        Output_Expression = "Universe.powergrid.area(1).G_i";
-        Expression_Value_Display = No;
-        Effective_Fraction_Figures = 0;
-        Graph_Element_Color = (0, 255, 0);
-    }
-    Output {
-        Graph_Element_Name = "2";
-        Line_Color = 0, 255, 0;
-        Line_Width = 2;
-        Marker_Id = 0;
-        Output_Expression = "Universe.powergrid.area(2).G_i";
-        Expression_Value_Display = No;
-        Effective_Fraction_Figures = 0;
-        Graph_Element_Color = (0, 255, 0);
-    }
-    Output {
-        Graph_Element_Name = "3";
-        Line_Color = 255, 0, 255;
-        Line_Width = 2;
-        Marker_Id = 0;
-        Output_Expression = "Universe.powergrid.area(3).G_i";
-        Expression_Value_Display = No;
-        Effective_Fraction_Figures = 0;
-        Graph_Element_Color = (0, 255, 0);
-    }
-    Output {
-        Graph_Element_Name = "4";
-        Line_Color = 255, 255, 0;
-        Line_Width = 2;
-        Marker_Id = 0;
-        Output_Expression = "Universe.powergrid.area(4).G_i";
-        Expression_Value_Display = No;
-        Effective_Fraction_Figures = 0;
-        Graph_Element_Color = (0, 255, 0);
-    }
-    Output {
-        Graph_Element_Name = "5";
-        Line_Color = 128, 128, 128;
-        Line_Width = 2;
-        Marker_Id = 0;
-        Output_Expression = "Universe.powergrid.area(5).G_i";
-        Expression_Value_Display = No;
-        Effective_Fraction_Figures = 0;
-        Graph_Element_Color = (0, 255, 0);
->>>>>>> origin/隨ｬ57蝗櫁�ｪ蜍募宛蠕｡騾｣蜷育匱陦ｨ逕ｨ
+        Graph_Element_Color = (51, 255, 255);
     }
 }
 
@@ -2526,11 +2212,7 @@ Time_Graph {
 // Control Panel Definition Division
 //-------------------------------------------------------
 Control_Panel {
-<<<<<<< HEAD
-    Display_Area = 0, 307, 313, 470;
-=======
-    Display_Area = 1241, 197, 266, 743;
->>>>>>> origin/隨ｬ57蝗櫁�ｪ蜍募宛蠕｡騾｣蜷育匱陦ｨ逕ｨ
+    Display_Area = 698, 255, 313, 470;
     Panel_Item {
         Item_Type = Edit_Box;
         Item_Name = "リンクレンジ(地域)";
@@ -2568,7 +2250,7 @@ Control_Panel {
         Font_Color = 0, 0, 0;
         Font_Background_Color = 0, 0, 0;
         Var_Name = "Universe.area_num";
-        Text_Data = "15";
+        Text_Data = "17";
     }
     Panel_Item {
         Item_Type = Edit_Box;
@@ -2581,7 +2263,7 @@ Control_Panel {
         Font_Color = 0, 0, 0;
         Font_Background_Color = 0, 0, 0;
         Var_Name = "Universe.solar_num";
-        Text_Data = "20";
+        Text_Data = "12";
     }
     Panel_Item {
         Item_Type = Edit_Box;
@@ -2594,7 +2276,7 @@ Control_Panel {
         Font_Color = 0, 0, 0;
         Font_Background_Color = 0, 0, 0;
         Var_Name = "Universe.home_num";
-        Text_Data = "20";
+        Text_Data = "12";
     }
     Panel_Item {
         Item_Type = Edit_Box;
@@ -2695,14 +2377,14 @@ Others_Data {
     Debug_Position_y = 75;
     Debug_Size_x = 400;
     Debug_Size_y = 200;
-    Console_Position_x = 3;
-    Console_Position_y = -2;
-    Console_Size_x = 301;
-    Console_Size_y = 209;
-    Componen_Tree_Position_x = 2;
-    Componen_Tree_Position_y = 2;
-    Componen_Tree_Size_x = 332;
-    Componen_Tree_Size_y = 487;
+    Console_Position_x = 41;
+    Console_Position_y = 402;
+    Console_Size_x = 318;
+    Console_Size_y = 448;
+    Componen_Tree_Position_x = 401;
+    Componen_Tree_Position_y = 52;
+    Componen_Tree_Size_x = 250;
+    Componen_Tree_Size_y = 400;
     Console_Background_Color = 16777215;
     Console_Foreground_Color = 255;
     Console_DisplayLines_Max = 500;
@@ -2729,15 +2411,9 @@ Network_Info {
 // Window Location Definition Division
 //-------------------------------------------------------
 Window_Rectangle {
-<<<<<<< HEAD
-    Window_Name = Main_Window, 301, 4, 1484, 982;
-    Window_Name = Output_Setting_Window, 502, 346, 480, 290;
-    Window_Name = Artisoc_Help_Window, 701, 111, 1190, 667;
-=======
-    Window_Name = Main_Window, 182, 0, 1387, 902;
-    Window_Name = Output_Setting_Window, 453, 306, 480, 290;
-    Window_Name = Artisoc_Help_Window, 169, 131, 1223, 668;
->>>>>>> origin/隨ｬ57蝗櫁�ｪ蜍募宛蠕｡騾｣蜷育匱陦ｨ逕ｨ
+    Window_Name = Main_Window, -8, -8, 1040, 754;
+    Window_Name = Output_Setting_Window, 280, 232, 480, 290;
+    Window_Name = Artisoc_Help_Window, 81, 204, 1190, 667;
 }
 
 
