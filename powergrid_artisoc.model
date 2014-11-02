@@ -204,7 +204,6 @@ UNIVERSE {
     Dim s(0, 0) As Integer = (0);
     Dim distribution_mode(0, 0) As Boolean = (0);
     Dim beta_d(0, 0) As Double = (0.0);
-    Dim time_second(0, 0) As Integer = ();
 }
 
 
@@ -212,13 +211,13 @@ UNIVERSE {
 // Agent Variable Initial Data
 //-------------------------------------------------------
 Initial_Value {
-    UNIVERSE.ALPHA = 1(0.05);
-    UNIVERSE.BETA = 1(0.0040);
+    UNIVERSE.ALPHA = 1(0.02);
+    UNIVERSE.BETA = 1(0.03);
     UNIVERSE.LINK_RANGE_AREA = 1(50.0);
-    UNIVERSE.LINK_RANGE_PLAYER = 1(7.0);
+    UNIVERSE.LINK_RANGE_PLAYER = 1(5.0);
     UNIVERSE.COUNT = 1(0);
-    UNIVERSE.HOME_NUM = 1(5);
-    UNIVERSE.SOLAR_NUM = 1(5);
+    UNIVERSE.HOME_NUM = 1(40);
+    UNIVERSE.SOLAR_NUM = 1(40);
     UNIVERSE.AREA_NUM = 1(15);
     UNIVERSE.SPACE_WIDTH = 1(0.0);
     UNIVERSE.SPACE_HEIGHT = 1(0.0);
@@ -228,7 +227,7 @@ Initial_Value {
     UNIVERSE.ESTIMATION_MODE = 1(0);
     UNIVERSE.S = 1(0);
     UNIVERSE.DISTRIBUTION_MODE = 1(1);
-    UNIVERSE.BETA_D = 1(0.5);
+    UNIVERSE.BETA_D = 1(1.0);
 }
 
 
@@ -243,7 +242,7 @@ Univ_Init{
 ClearConsoleScreen() //コンソールをクリア
 SetRandomSeed(Universe.RandomSeed)
 
-Universe.nego_step_number=100
+Universe.nego_step_number=200
 
 //-------------------------------------------------------
 //テンポラリー変数，インクリメント変数の宣言
@@ -607,15 +606,13 @@ Dim area_agtset as AgtSet
 Dim player_agtset as AgtSet //home,solar,trans
 Dim negotiator_agtset as AgtSet //home,solar,trans_terminal
 Dim count_min as Integer
-Dim count_second as Integer
 Dim max_agt as Agt
 Dim min_agt as Agt
 
 //-------------------------------------------------------
 //パラメータの設定＆事前処理
 //-------------------------------------------------------
-count_min=Universe.count*0.25 //離散時間を調整
-count_second=Universe.count*15
+count_min=Universe.count*1 //離散時間を調整
 
 ClearAgtset (area_agtset)
 ClearAgtset(player_agtset)
@@ -687,7 +684,6 @@ if Universe.nego_mode==false then
 	//-------------------------------------------------------
 	//時刻の取得
 	//-------------------------------------------------------
-	Universe.time_second=count_second mod 60
 	Universe.time_min=count_min mod 60
 	Universe.time_day=count_min \ 1440
 	Universe.time_hour=(count_min mod 1440) \ 60
@@ -697,7 +693,7 @@ if Universe.nego_mode==false then
 	Universe.DATA_e_total(Universe.count)=Universe.e_total
 	
 	//negoモードへの切り替え
-	if Universe.time_min == 0 And Universe.time_second == 0 And Universe.step_total !=0 And Universe.distribution_mode==true then
+	if Universe.time_min==0 And Universe.count !=0 And Universe.distribution_mode==true then
 		Universe.ct_nego=0
 		Universe.nego_mode=true
 	end if
@@ -1111,7 +1107,7 @@ Single_Simulation {
     Exec_Order_Random_First_Step_Only = No;
     Random_Seed = 0;
     Redraw_Timing = Step;
-    Redraw_Interval = 4;
+    Redraw_Interval = 10;
     Garbage_Interval = 0;
 }
 
@@ -1577,8 +1573,8 @@ Numeric_Output {
     Font_Style = 0;
     Font_Color = 0, 0, 0;
     Font_Background_Color = 255, 255, 255;
-    Position_x = 120;
-    Position_y = 43;
+    Position_x = 54;
+    Position_y = 26;
     Size_x = 300;
     Size_y = 249;
     Numeric_Name = "time";
@@ -1602,12 +1598,6 @@ Numeric_Output {
         Figures = 0;
         Format_Id = 0;
         Output_Expression = "Universe.time_min";
-    }
-    OUTPUT {
-        Output_Element_Name = "秒";
-        Figures = 0;
-        Format_Id = 0;
-        Output_Expression = "Universe.time_second";
     }
     OUTPUT {
         Output_Element_Name = "モード";
@@ -1684,8 +1674,8 @@ Line_Graph {
     Remarks = Yes;
     Legend_Pos = Top;
     FastDraw = Yes;
-    Position_x = 484;
-    Position_y = 204;
+    Position_x = 275;
+    Position_y = 55;
     Size_x = 977;
     Size_y = 564;
     Axis_Label = "min", "e_total";
@@ -1721,7 +1711,7 @@ Time_Graph {
     Remarks = Yes;
     Legend_Pos = Top;
     FastDraw = No;
-    Position_x = 29;
+    Position_x = 21;
     Position_y = 207;
     Size_x = 500;
     Size_y = 300;
@@ -1760,77 +1750,6 @@ Time_Graph {
         Effective_Fraction_Figures = 0;
         Graph_Element_Color = (0, 0, 255);
     }
-    Output {
-        Graph_Element_Name = "地域0(SV方式価格)";
-        Line_Color = 0, 255, 255;
-        Line_Width = 2;
-        Marker_Id = 0;
-        Output_Expression = "Universe.powergrid.area(0).lamda";
-        Expression_Value_Display = No;
-        Effective_Fraction_Figures = 0;
-        Graph_Element_Color = (204, 51, 255);
-    }
-}
-
-
-//-------------------------------------------------------
-// Time Graph Output Definition Division
-//-------------------------------------------------------
-Time_Graph {
-    Font_Name = "Dialog";
-    Font_Char_Set = 81;
-    Font_Size = 12.0;
-    Font_Style = 0;
-    Font_Color = 0, 0, 0;
-    Font_Background_Color = 255, 255, 255;
-    Draw_Timing = Simulation_Step;
-    Draw_Interval = 1;
-    Graph_Name = "状態量";
-    Title = "x_i";
-    Disable = Yes;
-    Background_Color = 255, 255, 255;
-    Remarks = Yes;
-    Legend_Pos = Top;
-    FastDraw = No;
-    Position_x = 104;
-    Position_y = 356;
-    Size_x = 643;
-    Size_y = 300;
-    Axis_Label = "", "";
-    Draw_By_JFree_Chart = Yes;
-    Scale = 0, 0.0, 1000, 100.0, 100, 10.0;
-    ScaleAuto = Yes, Yes;
-    Output_Group_Name = "";
-    Output {
-        Graph_Element_Name = "HOME0";
-        Line_Color = 0, 0, 255;
-        Line_Width = 2;
-        Marker_Id = 0;
-        Output_Expression = "Universe.powergrid.home(0).x_i";
-        Expression_Value_Display = No;
-        Effective_Fraction_Figures = 0;
-        Graph_Element_Color = (0, 255, 0);
-    }
-    Output {
-        Graph_Element_Name = "HOME1";
-        Line_Color = 0, 255, 0;
-        Line_Width = 2;
-        Marker_Id = 0;
-        Output_Expression = "Universe.powergrid.home(1).x_i";
-        Expression_Value_Display = No;
-        Effective_Fraction_Figures = 0;
-        Graph_Element_Color = (255, 0, 0);
-    }
-    Output {
-        Graph_Element_Name = "HOME2";
-        Line_Color = 255, 0, 255;
-        Line_Width = 2;
-        Marker_Id = 0;
-        Output_Expression = "Universe.powergrid.home(2).x_i";
-        Expression_Value_Display = No;
-        Effective_Fraction_Figures = 0;
-        Graph_Element_Color = (0, 0, 255);
-    }
 }
 
 
@@ -1863,7 +1782,7 @@ Control_Panel {
         Font_Color = 0, 0, 0;
         Font_Background_Color = 0, 0, 0;
         Var_Name = "Universe.link_range_player";
-        Text_Data = "7.0";
+        Text_Data = "5.0";
     }
     Panel_Item {
         Item_Type = Edit_Box;
@@ -1889,7 +1808,7 @@ Control_Panel {
         Font_Color = 0, 0, 0;
         Font_Background_Color = 0, 0, 0;
         Var_Name = "Universe.solar_num";
-        Text_Data = "5";
+        Text_Data = "40";
     }
     Panel_Item {
         Item_Type = Edit_Box;
@@ -1902,7 +1821,7 @@ Control_Panel {
         Font_Color = 0, 0, 0;
         Font_Background_Color = 0, 0, 0;
         Var_Name = "Universe.home_num";
-        Text_Data = "5";
+        Text_Data = "40";
     }
     Panel_Item {
         Item_Type = Edit_Box;
@@ -1915,7 +1834,7 @@ Control_Panel {
         Font_Color = 0, 0, 0;
         Font_Background_Color = 0, 0, 0;
         Var_Name = "Universe.alpha";
-        Text_Data = "0.05";
+        Text_Data = "0.02";
     }
     Panel_Item {
         Item_Type = Edit_Box;
@@ -1928,7 +1847,7 @@ Control_Panel {
         Font_Color = 0, 0, 0;
         Font_Background_Color = 0, 0, 0;
         Var_Name = "Universe.beta";
-        Text_Data = "0.0040";
+        Text_Data = "0.03";
     }
     Panel_Item {
         Item_Type = Edit_Box;
@@ -1941,7 +1860,7 @@ Control_Panel {
         Font_Color = 0, 0, 0;
         Font_Background_Color = 0, 0, 0;
         Var_Name = "Universe.beta_d";
-        Text_Data = "0.5";
+        Text_Data = "1.0";
     }
     Panel_Item {
         Item_Type = Edit_Box;
@@ -2072,8 +1991,8 @@ Network_Info {
 // Window Location Definition Division
 //-------------------------------------------------------
 Window_Rectangle {
-    Window_Name = Main_Window, 0, 0, 1498, 985;
-    Window_Name = Output_Setting_Window, 509, 347, 480, 290;
+    Window_Name = Main_Window, 0, 0, 1139, 906;
+    Window_Name = Output_Setting_Window, 479, 313, 480, 290;
     Window_Name = Artisoc_Help_Window, 636, 45, 1190, 667;
 }
 
