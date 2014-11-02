@@ -81,3 +81,15 @@ End if
 return(answer)
 
 }
+
+//----------------------------------------------------------
+Function eRnd(e as Double) as Double{
+//-e〜+eの範囲の値をランダム(一様分布)で返す
+
+Dim output as Double
+
+output = 2*e*(Rnd()-0.5) 
+
+return(output)
+
+}
