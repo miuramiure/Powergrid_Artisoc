@@ -204,7 +204,7 @@ UNIVERSE {
     Dim s(0, 0) As Integer = (0);
     Dim distribution_mode(0, 0) As Boolean = (0);
     Dim beta_d(0, 0) As Double = (0.0);
-    Dim time_second(0, 0) As Integer = (0);
+    Dim time_second(0, 0) As Integer = ();
 }
 
 
@@ -215,11 +215,11 @@ Initial_Value {
     UNIVERSE.ALPHA = 1(0.05);
     UNIVERSE.BETA = 1(0.0040);
     UNIVERSE.LINK_RANGE_AREA = 1(50.0);
-    UNIVERSE.LINK_RANGE_PLAYER = 1(10.0);
+    UNIVERSE.LINK_RANGE_PLAYER = 1(7.0);
     UNIVERSE.COUNT = 1(0);
-    UNIVERSE.HOME_NUM = 1(1);
-    UNIVERSE.SOLAR_NUM = 1(1);
-    UNIVERSE.AREA_NUM = 1(1);
+    UNIVERSE.HOME_NUM = 1(5);
+    UNIVERSE.SOLAR_NUM = 1(5);
+    UNIVERSE.AREA_NUM = 1(15);
     UNIVERSE.SPACE_WIDTH = 1(0.0);
     UNIVERSE.SPACE_HEIGHT = 1(0.0);
     UNIVERSE.RANDOMSEED = 1(11.0);
@@ -228,7 +228,7 @@ Initial_Value {
     UNIVERSE.ESTIMATION_MODE = 1(0);
     UNIVERSE.S = 1(0);
     UNIVERSE.DISTRIBUTION_MODE = 1(1);
-    UNIVERSE.BETA_D = 1(0.08);
+    UNIVERSE.BETA_D = 1(0.5);
 }
 
 
@@ -778,7 +778,7 @@ if Universe.nego_mode==true then
 			init=My.trans.x_i
 		end if
 		
-		My.theta=My.lamda - Universe.beta_d*init
+		My.theta=My.lamda+Universe.beta_d*init
 	end if
 	
 	sigma=0
@@ -1684,8 +1684,8 @@ Line_Graph {
     Remarks = Yes;
     Legend_Pos = Top;
     FastDraw = Yes;
-    Position_x = 370;
-    Position_y = 200;
+    Position_x = 484;
+    Position_y = 204;
     Size_x = 977;
     Size_y = 564;
     Axis_Label = "min", "e_total";
@@ -1716,15 +1716,15 @@ Time_Graph {
     Draw_Interval = 1;
     Graph_Name = "theta";
     Title = "theta";
-    Disable = Yes;
+    Disable = No;
     Background_Color = 255, 255, 255;
     Remarks = Yes;
     Legend_Pos = Top;
     FastDraw = No;
     Position_x = 29;
     Position_y = 207;
-    Size_x = 853;
-    Size_y = 508;
+    Size_x = 500;
+    Size_y = 300;
     Axis_Label = "", "";
     Draw_By_JFree_Chart = Yes;
     Scale = 0, 0.0, 1000, 100.0, 100, 10.0;
@@ -1749,6 +1749,16 @@ Time_Graph {
         Expression_Value_Display = No;
         Effective_Fraction_Figures = 0;
         Graph_Element_Color = (204, 0, 51);
+    }
+    Output {
+        Graph_Element_Name = "HOME2";
+        Line_Color = 0, 255, 255;
+        Line_Width = 2;
+        Marker_Id = 0;
+        Output_Expression = "Universe.powergrid.home(2).theta";
+        Expression_Value_Display = No;
+        Effective_Fraction_Figures = 0;
+        Graph_Element_Color = (0, 0, 255);
     }
     Output {
         Graph_Element_Name = "地域0(SV方式価格)";
@@ -1828,7 +1838,7 @@ Time_Graph {
 // Control Panel Definition Division
 //-------------------------------------------------------
 Control_Panel {
-    Display_Area = 1334, 157, 266, 743;
+    Display_Area = 1654, 172, 266, 743;
     Panel_Item {
         Item_Type = Edit_Box;
         Item_Name = "リンクレンジ(地域)";
@@ -1853,7 +1863,7 @@ Control_Panel {
         Font_Color = 0, 0, 0;
         Font_Background_Color = 0, 0, 0;
         Var_Name = "Universe.link_range_player";
-        Text_Data = "10.0";
+        Text_Data = "7.0";
     }
     Panel_Item {
         Item_Type = Edit_Box;
@@ -1866,7 +1876,7 @@ Control_Panel {
         Font_Color = 0, 0, 0;
         Font_Background_Color = 0, 0, 0;
         Var_Name = "Universe.area_num";
-        Text_Data = "1";
+        Text_Data = "15";
     }
     Panel_Item {
         Item_Type = Edit_Box;
@@ -1879,7 +1889,7 @@ Control_Panel {
         Font_Color = 0, 0, 0;
         Font_Background_Color = 0, 0, 0;
         Var_Name = "Universe.solar_num";
-        Text_Data = "1";
+        Text_Data = "5";
     }
     Panel_Item {
         Item_Type = Edit_Box;
@@ -1892,7 +1902,7 @@ Control_Panel {
         Font_Color = 0, 0, 0;
         Font_Background_Color = 0, 0, 0;
         Var_Name = "Universe.home_num";
-        Text_Data = "1";
+        Text_Data = "5";
     }
     Panel_Item {
         Item_Type = Edit_Box;
@@ -1931,7 +1941,7 @@ Control_Panel {
         Font_Color = 0, 0, 0;
         Font_Background_Color = 0, 0, 0;
         Var_Name = "Universe.beta_d";
-        Text_Data = "0.08";
+        Text_Data = "0.5";
     }
     Panel_Item {
         Item_Type = Edit_Box;
@@ -2062,8 +2072,8 @@ Network_Info {
 // Window Location Definition Division
 //-------------------------------------------------------
 Window_Rectangle {
-    Window_Name = Main_Window, -8, -8, 1616, 886;
-    Window_Name = Output_Setting_Window, 568, 298, 480, 290;
+    Window_Name = Main_Window, 0, 0, 1498, 985;
+    Window_Name = Output_Setting_Window, 509, 347, 480, 290;
     Window_Name = Artisoc_Help_Window, 636, 45, 1190, 667;
 }
 
